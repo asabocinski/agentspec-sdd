@@ -7,7 +7,7 @@ import {
   listFiles,
   pathExists,
   readText,
-  rewriteForCodex,
+  rewritePaths,
   writeIfAllowed
 } from './util.js'
 import {
@@ -87,17 +87,17 @@ export const uninstallCodex = (options) => uninstall('codex', 'Codex', options)
  */
 export async function installClaude (payload, options, report) {
   const root = join(options.dir, '.claude')
+  const render = (content, file) => rewritePaths(decorateSddDoc(content, file, '.claude'), 'claude')
 
-  await copyTree(payload.sdd, join(root, 'sdd'), options, report, (content, file) =>
-    decorateSddDoc(content, file, '.claude'))
+  await copyTree(payload.sdd, join(root, 'sdd'), options, report, render)
   // README.md is excluded: anything under commands/ is discovered as a slash
   // command, so shipping it would surface a bogus /README.
   for (const dir of payload.commands) {
-    await copyTree(dir, join(root, 'commands', basename(dir)), options, report, null, isCommandAsset)
+    await copyTree(dir, join(root, 'commands', basename(dir)), options, report, render, isCommandAsset)
   }
 
-  await copyTree(payload.agents, join(root, 'agents'), options, report)
-  await copyTree(payload.kb, join(root, 'kb'), options, report)
+  await copyTree(payload.agents, join(root, 'agents'), options, report, render)
+  await copyTree(payload.kb, join(root, 'kb'), options, report, render)
 
   for (const dir of WORKING_DIRS) {
     await ensureDir(join(root, 'sdd', dir), options)
@@ -113,10 +113,10 @@ export async function installClaude (payload, options, report) {
 export async function installCodex (payload, options, report) {
   const root = join(options.dir, '.codex')
 
-  await copyTree(payload.sdd, join(root, 'sdd'), options, report, (content, file) =>
-    rewriteForCodex(decorateSddDoc(content, file, '.codex')))
+  const render = (content, file) => rewritePaths(decorateSddDoc(content, file, '.codex'), 'codex')
 
-  await copyTree(payload.kb, join(root, 'kb'), options, report, rewriteForCodex)
+  await copyTree(payload.sdd, join(root, 'sdd'), options, report, render)
+  await copyTree(payload.kb, join(root, 'kb'), options, report, render)
 
   for (const dir of WORKING_DIRS) {
     await ensureDir(join(root, 'sdd', dir), options)

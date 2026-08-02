@@ -31,6 +31,17 @@ async function everyDeclaredDomainExists (projectDir) {
   return declared.size > 0 && missing.length === 0
 }
 
+async function findLeaks (root, needles) {
+  const found = []
+
+  for (const file of await listFiles(root)) {
+    const content = await readFile(join(root, file), 'utf8')
+    if (needles.some((needle) => content.includes(needle))) found.push(file)
+  }
+
+  return found
+}
+
 const sandbox = await mkdtemp(join(tmpdir(), 'agentspec-rdd-'))
 const silence = console.log
 console.log = () => {}
@@ -106,14 +117,15 @@ try {
   check('codex: AGENTS.md documents KB-First',
     agentsMd.includes('### Knowledge base') && agentsMd.includes('KB-First resolution'))
 
-  // Scans the whole tree rather than sampled files: a file type missing from
-  // isTextAsset would otherwise ship with unrewritten .claude/ paths.
-  const leaks = []
-  for (const file of await listFiles(join(codexDir, '.codex'))) {
-    const content = await readFile(join(codexDir, '.codex', file), 'utf8')
-    if (content.includes('.claude/')) leaks.push(file)
-  }
-  check(`codex: no .claude/ paths anywhere in .codex (${leaks.join(', ') || 'clean'})`, leaks.length === 0)
+  // The payload refers to itself as .base/; nothing may reach a target unresolved.
+  // Scans whole trees, since a file type missing from isTextAsset would slip through.
+  const claudeLeaks = await findLeaks(join(claudeDir, '.claude'), ['.base/'])
+  const codexLeaks = await findLeaks(join(codexDir, '.codex'), ['.base/', '.claude/'])
+
+  check(`claude: no unresolved .base/ paths (${claudeLeaks.join(', ') || 'clean'})`,
+    claudeLeaks.length === 0)
+  check(`codex: no .base/ or .claude/ paths (${codexLeaks.join(', ') || 'clean'})`,
+    codexLeaks.length === 0)
   check('codex: AGENTS.md preserves user content', agentsMd.includes('Hand-written rules.'))
   check('codex: AGENTS.md has managed block', agentsMd.includes('<!-- agentspec-rdd:start -->'))
   check('codex: AGENTS.md lists specialist categories',

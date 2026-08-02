@@ -6,18 +6,18 @@ import { listFiles } from '../src/util.js'
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
 const EXPECTED = [
-  { path: '.claude/sdd/architecture/WORKFLOW_CONTRACTS.yaml', kind: 'file' },
-  { path: '.claude/sdd/templates', kind: 'dir', minFiles: 5 },
-  { path: '.claude/commands/workflow', kind: 'dir', minFiles: 7 },
-  { path: '.claude/agents/workflow', kind: 'dir', minFiles: 6 },
-  { path: '.claude/commands/knowledge', kind: 'dir', minFiles: 1 },
-  { path: '.claude/commands/data-engineering', kind: 'dir', minFiles: 8 },
-  { path: '.claude/commands/core', kind: 'dir', minFiles: 4 },
-  { path: '.claude/commands/review', kind: 'dir', minFiles: 1 },
-  { path: '.claude/agents', kind: 'dir', minFiles: 42 },
-  { path: '.claude/kb', kind: 'dir', minFiles: 200 },
-  { path: '.claude/kb/_index.yaml', kind: 'file' },
-  { path: '.claude/kb/_templates', kind: 'dir', minFiles: 0 }
+  { path: '.base/sdd/architecture/WORKFLOW_CONTRACTS.yaml', kind: 'file' },
+  { path: '.base/sdd/templates', kind: 'dir', minFiles: 5 },
+  { path: '.base/commands/workflow', kind: 'dir', minFiles: 7 },
+  { path: '.base/agents/workflow', kind: 'dir', minFiles: 6 },
+  { path: '.base/commands/knowledge', kind: 'dir', minFiles: 1 },
+  { path: '.base/commands/data-engineering', kind: 'dir', minFiles: 8 },
+  { path: '.base/commands/core', kind: 'dir', minFiles: 4 },
+  { path: '.base/commands/review', kind: 'dir', minFiles: 1 },
+  { path: '.base/agents', kind: 'dir', minFiles: 42 },
+  { path: '.base/kb', kind: 'dir', minFiles: 200 },
+  { path: '.base/kb/_index.yaml', kind: 'file' },
+  { path: '.base/kb/_templates', kind: 'dir', minFiles: 0 }
 ]
 
 const failures = []

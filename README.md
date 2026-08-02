@@ -67,7 +67,25 @@ BRAINSTORM (0) -> DEFINE (1) -> DESIGN (2) -> BUILD (3) -> SHIP (4)
 
 ## Estrutura em cada alvo
 
-Os dois assistentes têm formatos diferentes, então a instalação no Codex é uma **conversão**, não uma cópia.
+O conteúdo canônico mora em **`.base/`** — uma pasta neutra, que não pertence a nenhum
+assistente. Instalar é resolver essa base para o formato do alvo:
+
+```text
+                    .base/          fonte única, neutra
+                      │
+          ┌───────────┴───────────┐
+          ▼                       ▼
+      --claude                --codex
+          │                       │
+      .claude/                .codex/  + AGENTS.md
+```
+
+Dentro do `.base/`, os documentos se referem a si mesmos como `.base/sdd/features/...`.
+Na instalação esses caminhos são reescritos para o alvo escolhido, então nada chega ao seu
+projeto apontando para uma pasta que não existe.
+
+Os dois assistentes têm formatos diferentes, então a instalação no Codex é uma **conversão**,
+não uma cópia.
 
 ### `--claude`
 
@@ -107,11 +125,12 @@ por categoria numa tabela.
 
 Regras de conversão:
 
-| De (Claude Code) | Para (Codex) | Observação |
-|------------------|--------------|------------|
+| De (`.base/`) | Para (Codex) | Observação |
+|---------------|--------------|------------|
 | `commands/workflow/define.md` | `prompts/define.md` | O Codex tira o nome do slash do nome do arquivo |
 | `agents/workflow/define-agent.md` | `skills/define-agent/SKILL.md` | `tier`, `model` e `tools` viram tabela visível em vez de serem descartados |
-| Referências a `.claude/...` | `.codex/...` | Reescritas em todos os documentos copiados |
+| `.base/agents/...` | `.codex/skills/...` | Reescrito em todos os documentos copiados |
+| `.base/CLAUDE.md` | `AGENTS.md` | Cada alvo tem o seu arquivo de instruções de projeto |
 | Delegação via ferramenta Task | Instrução inline | O Codex não tem Task; cada skill orienta a seguir as instruções inline |
 
 **O `AGENTS.md` nunca é sobrescrito.** O conteúdo gerado fica entre os marcadores
@@ -315,9 +334,22 @@ Para testar um checkout local contra outro projeto, sem publicar nada:
 npx /caminho/para/agentspec-sdd --claude --dir ~/algum-projeto
 ```
 
-O payload é o próprio `.claude/sdd`, `.claude/commands/workflow` e `.claude/agents` do
-repositório — não há etapa de build nem cópia duplicada para manter em sincronia. Agente
-novo colocado em `.claude/agents/<categoria>/` entra no instalador sozinho, sem configuração.
+### Onde editar
+
+**Sempre em `.base/`.** É a fonte única: não há etapa de build nem cópia duplicada para
+manter em sincronia. Agente novo em `.base/agents/<categoria>/` entra no instalador sozinho,
+sem configuração; o mesmo vale para comando novo em `.base/commands/<grupo>/` e domínio novo
+em `.base/kb/`.
+
+Para usar o próprio toolkit enquanto desenvolve o repositório:
+
+```bash
+npm run bootstrap    # instala .base/ -> .claude/ neste repositório
+```
+
+O `.claude/` gerado é ignorado pelo git (exceto `settings.json`, que é config real deste
+repositório). **Editar um arquivo dentro do `.claude/` gerado não tem efeito** — o próximo
+bootstrap sobrescreve. Edite em `.base/` e rode o bootstrap de novo.
 
 ## Licença
 

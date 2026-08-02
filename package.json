@@ -22,17 +22,18 @@
   "files": [
     "bin",
     "src",
-    ".claude/sdd",
-    ".claude/commands/workflow",
-    ".claude/commands/knowledge",
-    ".claude/commands/data-engineering",
-    ".claude/commands/core",
-    ".claude/commands/review",
-    ".claude/agents",
-    ".claude/kb",
+    ".base/sdd",
+    ".base/commands/workflow",
+    ".base/commands/knowledge",
+    ".base/commands/data-engineering",
+    ".base/commands/core",
+    ".base/commands/review",
+    ".base/agents",
+    ".base/kb",
     "README.md"
   ],
   "scripts": {
+    "bootstrap": "node bin/cli.js --claude --dir . --force",
     "prepack": "node scripts/verify-payload.js",
     "test": "node scripts/verify-payload.js && node scripts/smoke-test.js"
   },

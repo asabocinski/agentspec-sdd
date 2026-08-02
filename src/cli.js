@@ -131,14 +131,16 @@ async function promptForTarget () {
 }
 
 async function resolvePayload () {
+  const base = join(packageRoot, '.base')
+
   const payload = {
-    sdd: join(packageRoot, '.claude', 'sdd'),
+    sdd: join(base, 'sdd'),
     // Every command group except visual-explainer, whose commands depend on a
     // skill this distribution does not carry and would fail when invoked.
     commands: ['workflow', 'knowledge', 'data-engineering', 'core', 'review']
-      .map((group) => join(packageRoot, '.claude', 'commands', group)),
-    agents: join(packageRoot, '.claude', 'agents'),
-    kb: join(packageRoot, '.claude', 'kb')
+      .map((group) => join(base, 'commands', group)),
+    agents: join(base, 'agents'),
+    kb: join(base, 'kb')
   }
 
   for (const [name, entry] of Object.entries(payload)) {

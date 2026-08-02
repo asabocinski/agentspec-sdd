@@ -1,4 +1,4 @@
-import { rewriteForCodex } from './util.js'
+import { rewritePaths } from './util.js'
 
 const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/
 
@@ -92,7 +92,7 @@ export function toCodexPrompt (asset, sourceName) {
 
   return {
     name,
-    content: `${frontmatter}\n\n${rewriteForCodex(body)}\n`
+    content: `${frontmatter}\n\n${rewritePaths(body, 'codex')}\n`
   }
 }
 
@@ -144,7 +144,7 @@ export function toCodexSkill (asset, sourceName) {
 
   return {
     name,
-    content: `${frontmatter}\n\n${preamble.join('\n')}\n\n${rewriteForCodex(rest)}\n`
+    content: `${frontmatter}\n\n${preamble.join('\n')}\n\n${rewritePaths(rest, 'codex')}\n`
   }
 }
 

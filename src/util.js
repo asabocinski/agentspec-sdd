@@ -68,23 +68,31 @@ export async function writeIfAllowed (path, content, options, report) {
 }
 
 /**
- * Rewrites `.claude/...` references to their Codex equivalents. Order matters:
- * the most specific prefixes must resolve before the generic `.claude/` catch-all.
+ * The payload is assistant-neutral: it lives in `.base/` and refers to itself that
+ * way. Installing resolves those references to whatever the target actually uses.
+ * Order matters — the most specific prefixes must resolve before the catch-all.
  */
-const CODEX_PATH_REWRITES = [
-  ['.claude/commands/workflow/', '.codex/prompts/'],
-  ['.claude/commands/', '.codex/prompts/'],
-  ['.claude/agents/workflow/', '.codex/skills/'],
-  ['.claude/agents/', '.codex/skills/'],
-  ['.claude/CLAUDE.md', 'AGENTS.md'],
-  ['.claude/', '.codex/']
-]
+const PATH_REWRITES = {
+  claude: [
+    ['.base/CLAUDE.md', '.claude/CLAUDE.md'],
+    ['.base/', '.claude/']
+  ],
+  codex: [
+    ['.base/commands/workflow/', '.codex/prompts/'],
+    ['.base/commands/', '.codex/prompts/'],
+    ['.base/agents/workflow/', '.codex/skills/'],
+    ['.base/agents/', '.codex/skills/'],
+    ['.base/CLAUDE.md', 'AGENTS.md'],
+    ['.base/', '.codex/']
+  ]
+}
 
-export function rewriteForCodex (text) {
-  return CODEX_PATH_REWRITES.reduce(
-    (result, [from, to]) => result.split(from).join(to),
-    text
-  )
+export function rewritePaths (text, target) {
+  const rules = PATH_REWRITES[target]
+
+  if (!rules) throw new Error(`unknown rewrite target: ${target}`)
+
+  return rules.reduce((result, [from, to]) => result.split(from).join(to), text)
 }
 
 export const isTextAsset = (path) => /\.(md|ya?ml|json|txt|template)$/i.test(path)
