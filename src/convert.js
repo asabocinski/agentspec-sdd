@@ -274,6 +274,25 @@ export function buildAgentsSection (commands, agents) {
 const firstLine = (text = '') => text.split('\n')[0].trim()
 
 /**
+ * Removes the managed section, leaving whatever the user wrote around it. Returns
+ * null when nothing of ours is present, so the caller can leave the file alone.
+ */
+export function stripAgentsSection (existing) {
+  if (!existing) return null
+
+  const start = existing.indexOf(AGENTS_MD_START)
+  const end = existing.indexOf(AGENTS_MD_END)
+
+  if (start === -1 || end === -1) return null
+
+  const remaining = (existing.slice(0, start) + existing.slice(end + AGENTS_MD_END.length))
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+
+  return remaining === '# AGENTS.md' ? '' : `${remaining}\n`
+}
+
+/**
  * Injects the managed section into an existing AGENTS.md without touching any
  * content the user wrote around it.
  */

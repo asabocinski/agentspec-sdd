@@ -3,14 +3,15 @@ import { dirname, join, resolve } from 'node:path'
 import { createInterface } from 'node:readline/promises'
 import { createRequire } from 'node:module'
 import { createReport, pathExists, style } from './util.js'
-import { installClaude, installCodex } from './targets.js'
+import { installClaude, installCodex, uninstallClaude, uninstallCodex } from './targets.js'
+import { writeManifest } from './manifest.js'
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const { version } = createRequire(import.meta.url)('../package.json')
 
 const TARGETS = {
-  claude: { label: 'Claude Code', dir: '.claude', install: installClaude },
-  codex: { label: 'Codex', dir: '.codex', install: installCodex }
+  claude: { label: 'Claude Code', dir: '.claude', install: installClaude, uninstall: uninstallClaude },
+  codex: { label: 'Codex', dir: '.codex', install: installCodex, uninstall: uninstallCodex }
 }
 
 const HELP = `
@@ -27,20 +28,37 @@ const HELP = `
                       Targets also work as positional words: agentspec-rdd claude
 
   ${style.bold('Options')}
+    --uninstall       Remove a previous install (see below)
     --dir <path>      Project directory (default: current directory)
-    --force           Overwrite files that already exist
-    --dry-run         Report what would be written, change nothing
+    --force           Overwrite existing files; on uninstall, also remove edited ones
+    --dry-run         Report what would change, change nothing
     -h, --help        Show this help
     -v, --version     Show version
+
+  ${style.bold('Uninstall')}
+    Only files recorded in the install manifest are removed, and only while their
+    contents still match what was installed. Your work under sdd/features/, agents
+    you added by hand, and files you edited are kept. Use --force to remove edited
+    files too. On Codex, only the managed block of AGENTS.md is stripped.
 
   ${style.bold('Examples')}
     npx agentspec-rdd --claude
     npx agentspec-rdd --codex --dir ../my-project
     npx agentspec-rdd --both --dry-run
+    npx agentspec-rdd --uninstall --claude
+    npx agentspec-rdd --uninstall --both --dry-run
 `
 
 export function parseArgs (argv) {
-  const options = { targets: [], dir: process.cwd(), force: false, dryRun: false, help: false, version: false }
+  const options = {
+    targets: [],
+    dir: process.cwd(),
+    force: false,
+    dryRun: false,
+    uninstall: false,
+    help: false,
+    version: false
+  }
 
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index]
@@ -61,6 +79,10 @@ export function parseArgs (argv) {
       case '--dir':
         if (!argv[index + 1]) throw new Error('--dir requires a path')
         options.dir = resolve(argv[++index])
+        break
+      case '--uninstall':
+      case 'uninstall':
+        options.uninstall = true
         break
       case '--force':
         options.force = true
@@ -137,6 +159,37 @@ function summarise (targetLabel, result, report, options) {
   console.log(`    ${style.dim(result.note)}`)
 }
 
+function summariseUninstall (targetLabel, result, options) {
+  const { removed, kept, missing } = result.outcome
+  const verb = options.dryRun ? 'would remove' : 'removed'
+
+  console.log(`\n  ${style.green('*')} ${style.bold(targetLabel)} ${style.dim(`-> ${result.root}`)}`)
+  console.log(`    ${verb} ${removed.length} file(s)`)
+
+  if (kept.length) {
+    console.log(`    ${style.yellow(`kept ${kept.length} edited file(s)`)} ${style.dim('(use --force to remove them too)')}`)
+    for (const file of kept.slice(0, 5)) console.log(`      ${style.dim(file)}`)
+    if (kept.length > 5) console.log(`      ${style.dim(`... and ${kept.length - 5} more`)}`)
+  }
+
+  if (missing.length) {
+    console.log(`    ${style.dim(`${missing.length} file(s) were already gone`)}`)
+  }
+
+  if (result.pruned.length) {
+    console.log(`    ${style.dim(`pruned ${result.pruned.length} empty director(ies)`)}`)
+  }
+}
+
+async function runUninstall (options) {
+  for (const key of options.targets) {
+    const target = TARGETS[key]
+    summariseUninstall(target.label, await target.uninstall(options), options)
+  }
+
+  console.log(`\n  ${style.dim('Your work under sdd/features/ and sdd/reports/ was left in place.')}\n`)
+}
+
 export async function main (argv) {
   const options = parseArgs(argv)
 
@@ -151,20 +204,28 @@ export async function main (argv) {
   }
 
   if (!options.targets.length) {
+    if (options.uninstall) {
+      throw new Error('--uninstall needs a target. Pass --claude, --codex, or --both.')
+    }
     options.targets = await promptForTarget()
   }
 
-  const payload = await resolvePayload()
-
   if (options.dryRun) {
-    console.log(`\n  ${style.yellow('dry run')} ${style.dim('- nothing will be written')}`)
+    console.log(`\n  ${style.yellow('dry run')} ${style.dim('- nothing will be changed')}`)
   }
+
+  if (options.uninstall) {
+    return runUninstall(options)
+  }
+
+  const payload = await resolvePayload()
 
   for (const key of options.targets) {
     const target = TARGETS[key]
     const report = createReport()
     const result = await target.install(payload, options, report)
 
+    await writeManifest(result.root, key, version, report, options)
     summarise(target.label, result, report, options)
   }
 

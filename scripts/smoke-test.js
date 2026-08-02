@@ -69,6 +69,57 @@ try {
   await mkdir(dryDir, { recursive: true })
   await main(['--claude', '--dir', dryDir, '--dry-run'])
   check('dry run writes nothing', !(await pathExists(join(dryDir, '.claude'))))
+
+  // --- uninstall -------------------------------------------------------------
+  const gone = join(sandbox, 'uninstall-project')
+  await mkdir(gone, { recursive: true })
+  await main(['--claude', '--dir', gone])
+
+  check('uninstall: manifest written', await pathExists(join(gone, '.claude/.agentspec-rdd.json')))
+
+  await writeFile(join(gone, '.claude/sdd/features/DEFINE_MINE.md'), '# meu trabalho\n')
+  await writeFile(join(gone, '.claude/agents/python/code-reviewer.md'), 'editado por mim\n')
+
+  await main(['--uninstall', '--claude', '--dir', gone, '--dry-run'])
+  check('uninstall dry run removes nothing',
+    await pathExists(join(gone, '.claude/sdd/architecture/WORKFLOW_CONTRACTS.yaml')))
+
+  await main(['--uninstall', '--claude', '--dir', gone])
+
+  check('uninstall: installed files removed',
+    !(await pathExists(join(gone, '.claude/sdd/architecture/WORKFLOW_CONTRACTS.yaml'))))
+  check('uninstall: user work kept',
+    await pathExists(join(gone, '.claude/sdd/features/DEFINE_MINE.md')))
+  check('uninstall: edited file kept',
+    await pathExists(join(gone, '.claude/agents/python/code-reviewer.md')))
+  check('uninstall: manifest removed',
+    !(await pathExists(join(gone, '.claude/.agentspec-rdd.json'))))
+
+  // Reinstall with --force so the file kept above is overwritten and tracked again;
+  // without --force it stays skipped, and a skipped file is never manifest-owned.
+  await main(['--claude', '--dir', gone, '--force'])
+  await writeFile(join(gone, '.claude/agents/python/code-reviewer.md'), 'editado de novo\n')
+  await main(['--uninstall', '--claude', '--dir', gone, '--force'])
+  check('uninstall --force removes edited files',
+    !(await pathExists(join(gone, '.claude/agents/python/code-reviewer.md'))))
+  check('uninstall --force still keeps untracked user work',
+    await pathExists(join(gone, '.claude/sdd/features/DEFINE_MINE.md')))
+
+  const keepMd = join(sandbox, 'agentsmd-project')
+  await mkdir(keepMd, { recursive: true })
+  await writeFile(join(keepMd, 'AGENTS.md'), '# Meu projeto\n\nRegras minhas.\n')
+  await main(['--codex', '--dir', keepMd])
+  await main(['--uninstall', '--codex', '--dir', keepMd])
+
+  const survivor = await readFile(join(keepMd, 'AGENTS.md'), 'utf8')
+  check('uninstall: AGENTS.md user content survives', survivor.includes('Regras minhas.'))
+  check('uninstall: managed block stripped', !survivor.includes('agentspec-rdd:start'))
+  check('uninstall: .codex removed', !(await pathExists(join(keepMd, '.codex'))))
+
+  const orphan = join(sandbox, 'orphan-project')
+  await mkdir(orphan, { recursive: true })
+  const refused = await main(['--uninstall', '--claude', '--dir', orphan]).then(() => false, () => true)
+  check('uninstall without a manifest refuses', refused)
 } finally {
   console.log = silence
   await rm(sandbox, { recursive: true, force: true })

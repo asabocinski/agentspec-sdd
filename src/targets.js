@@ -1,5 +1,6 @@
 import { basename, extname, join } from 'node:path'
-import { copyFile, mkdir } from 'node:fs/promises'
+import { copyFile, mkdir, rm, writeFile } from 'node:fs/promises'
+import { pruneEmptyDirs, readManifest, removeRecordedFiles, MANIFEST_NAME } from './manifest.js'
 import {
   ensureDir,
   isTextAsset,
@@ -14,6 +15,7 @@ import {
   decorateSddDoc,
   mergeAgentsMd,
   parseAsset,
+  stripAgentsSection,
   toCodexPrompt,
   toCodexSkill
 } from './convert.js'
@@ -30,6 +32,52 @@ const isAgentAsset = (file) =>
   file.includes('/') && extname(file) === '.md' && !NON_AGENT_FILES.has(basename(file))
 
 const categoryOf = (file) => file.split('/')[0]
+
+/**
+ * Shared uninstall path. Only files recorded in the manifest are touched, so user
+ * work under `sdd/features/` and any agents added by hand survive untouched.
+ */
+async function uninstall (targetKey, label, options) {
+  const root = join(options.dir, `.${targetKey === 'claude' ? 'claude' : 'codex'}`)
+  const manifest = await readManifest(root)
+
+  if (!manifest) {
+    throw new Error(
+      `no ${label} install found at ${root}\n` +
+      `Expected a manifest at ${join(root, MANIFEST_NAME)}. If this was installed with an\n` +
+      'older version, delete the directory by hand — there is no record of what to remove.'
+    )
+  }
+
+  const outcome = await removeRecordedFiles(manifest, options)
+
+  for (const file of manifest.managedBlocks ?? []) {
+    await stripManagedBlock(join(options.dir, file), options, outcome)
+  }
+
+  if (!options.dryRun) await rm(join(root, MANIFEST_NAME), { force: true })
+
+  const pruned = await pruneEmptyDirs(root, options)
+
+  return { root, outcome, pruned }
+}
+
+async function stripManagedBlock (path, options, outcome) {
+  if (!(await pathExists(path))) return
+
+  const stripped = stripAgentsSection(await readText(path))
+  if (stripped === null) return
+
+  if (!options.dryRun) {
+    if (stripped === '') await rm(path, { force: true })
+    else await writeFile(path, stripped, 'utf8')
+  }
+
+  outcome.removed.push(stripped === '' ? 'AGENTS.md' : 'AGENTS.md (managed block only)')
+}
+
+export const uninstallClaude = (options) => uninstall('claude', 'Claude Code', options)
+export const uninstallCodex = (options) => uninstall('codex', 'Codex', options)
 
 /**
  * Claude Code target: the payload is already in its native format, so this is a
