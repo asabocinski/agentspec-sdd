@@ -9,7 +9,8 @@ const EXPECTED = [
   { path: '.claude/sdd/architecture/WORKFLOW_CONTRACTS.yaml', kind: 'file' },
   { path: '.claude/sdd/templates', kind: 'dir', minFiles: 5 },
   { path: '.claude/commands/workflow', kind: 'dir', minFiles: 7 },
-  { path: '.claude/agents/workflow', kind: 'dir', minFiles: 6 }
+  { path: '.claude/agents/workflow', kind: 'dir', minFiles: 6 },
+  { path: '.claude/agents', kind: 'dir', minFiles: 42 }
 ]
 
 const failures = []

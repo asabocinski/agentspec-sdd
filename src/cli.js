@@ -112,7 +112,7 @@ async function resolvePayload () {
   const payload = {
     sdd: join(packageRoot, '.claude', 'sdd'),
     commands: join(packageRoot, '.claude', 'commands', 'workflow'),
-    agents: join(packageRoot, '.claude', 'agents', 'workflow')
+    agents: join(packageRoot, '.claude', 'agents')
   }
 
   for (const [name, path] of Object.entries(payload)) {

@@ -160,13 +160,13 @@ export function decorateSddDoc (content, file, targetDir) {
   if (!PROFILE_DOCS.has(file)) return content
 
   const notice = [
-    `> **Installed profile: SDD core.** \`agentspec-rdd\` installed the 5-phase workflow:`,
-    `> \`${targetDir}/sdd/\`, the 7 phase commands, and the 6 workflow agents.`,
+    '> **Installed profile: workflow + agents.** `agentspec-rdd` installed the 5-phase',
+    `> workflow (\`${targetDir}/sdd/\`), the 7 phase commands, and all 42 agents.`,
     '>',
-    '> The wider agent ecosystem and the KB domains described below belong to the full',
-    '> AgentSpec distribution and are **not** part of this install. Until you add agents',
-    `> under \`${targetDir}/\`, DESIGN will assign \`(direct)\` instead of a specialist, and`,
-    '> KB domains named in a DEFINE Technical Context will resolve to nothing.',
+    '> The 18 KB domains described below are **not** part of this install. Agent Matching',
+    '> works, but KB-First resolution has nothing local to read: domains named in a DEFINE',
+    '> Technical Context resolve to nothing, and agents fall back to their own knowledge.',
+    `> To close that gap, add the domains under \`${targetDir}/kb/\`.`,
     ''
   ].join('\n')
 
@@ -189,8 +189,22 @@ export function buildAgentsSection (commands, agents) {
     .map((command) => `| \`/${command.name}\` | ${firstLine(command.description)} |`)
     .join('\n')
 
-  const agentRows = agents
+  const phaseAgents = agents.filter((agent) => agent.category === 'workflow')
+  const specialists = agents.filter((agent) => agent.category !== 'workflow')
+
+  const agentRows = phaseAgents
     .map((agent) => `| \`${agent.name}\` | \`.codex/skills/${agent.name}/SKILL.md\` |`)
+    .join('\n')
+
+  const byCategory = new Map()
+  for (const agent of specialists) {
+    byCategory.set(agent.category, [...(byCategory.get(agent.category) ?? []), agent.name])
+  }
+
+  const specialistRows = [...byCategory.entries()]
+    .sort((a, b) => b[1].length - a[1].length)
+    .map(([category, names]) =>
+      `| **${category}** | ${names.length} | ${names.map((name) => `\`${name}\``).join(', ')} |`)
     .join('\n')
 
   return [
@@ -223,6 +237,15 @@ export function buildAgentsSection (commands, agents) {
     '| Skill | Location |',
     '|-------|----------|',
     agentRows,
+    '',
+    '### Specialist skills',
+    '',
+    `${specialists.length} domain specialists live under \`.codex/skills/\`. DESIGN assigns one to each`,
+    'file in the manifest; BUILD then reads that skill and follows it while writing the file.',
+    '',
+    '| Category | Count | Skills |',
+    '|----------|------:|--------|',
+    specialistRows,
     '',
     '### Where artifacts live',
     '',

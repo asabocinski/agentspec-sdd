@@ -22,6 +22,11 @@ try {
     (await listFiles(join(claudeDir, '.claude/commands/workflow'))).length === 7)
   check('claude: 6 workflow agents',
     (await listFiles(join(claudeDir, '.claude/agents/workflow'))).length === 6)
+  check('claude: all 42 agents across 7 categories',
+    (await listFiles(join(claudeDir, '.claude/agents')))
+      .filter((file) => file.includes('/') && !file.endsWith('_template.md')).length === 42)
+  check('claude: agent categories preserved',
+    await pathExists(join(claudeDir, '.claude/agents/data-engineering/dbt-specialist.md')))
   check('claude: working dirs created',
     await pathExists(join(claudeDir, '.claude/sdd/features')))
 
@@ -36,7 +41,12 @@ try {
   const contracts = await readFile(join(codexDir, '.codex/sdd/architecture/WORKFLOW_CONTRACTS.yaml'), 'utf8')
 
   check('codex: prompts generated', (await listFiles(join(codexDir, '.codex/prompts'))).length === 7)
-  check('codex: skills generated', (await listFiles(join(codexDir, '.codex/skills'))).length === 6)
+  check('codex: 42 skills generated', (await listFiles(join(codexDir, '.codex/skills'))).length === 42)
+  check('codex: specialist skill converted',
+    await pathExists(join(codexDir, '.codex/skills/dbt-specialist/SKILL.md')))
+  check('codex: README/_template not turned into skills',
+    !(await pathExists(join(codexDir, '.codex/skills/README/SKILL.md'))) &&
+    !(await pathExists(join(codexDir, '.codex/skills/_template/SKILL.md'))))
   check('codex: prompt keeps description', define.includes('description:'))
   check('codex: skill declares name', skill.includes('name: define-agent'))
   const outsideFences = skill.replace(/```[\s\S]*?```/g, '')
@@ -47,6 +57,8 @@ try {
   check('codex: paths rewritten in sdd', !contracts.includes('.claude/'))
   check('codex: AGENTS.md preserves user content', agentsMd.includes('Hand-written rules.'))
   check('codex: AGENTS.md has managed block', agentsMd.includes('<!-- agentspec-rdd:start -->'))
+  check('codex: AGENTS.md lists specialist categories',
+    agentsMd.includes('**data-engineering**') && agentsMd.includes('### Specialist skills'))
 
   await main(['--codex', '--dir', codexDir])
   const rerun = await readFile(join(codexDir, 'AGENTS.md'), 'utf8')

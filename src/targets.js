@@ -20,6 +20,17 @@ import {
 
 const WORKING_DIRS = ['features', 'reports', 'archive']
 
+const NON_AGENT_FILES = new Set(['README.md', '_template.md'])
+
+/**
+ * Agent assets live one level down, under a category directory. Everything at the
+ * root of `agents/` is documentation (README, template), not a deployable agent.
+ */
+const isAgentAsset = (file) =>
+  file.includes('/') && extname(file) === '.md' && !NON_AGENT_FILES.has(basename(file))
+
+const categoryOf = (file) => file.split('/')[0]
+
 /**
  * Claude Code target: the payload is already in its native format, so this is a
  * verbatim copy into `.claude/`.
@@ -30,7 +41,7 @@ export async function installClaude (payload, options, report) {
   await copyTree(payload.sdd, join(root, 'sdd'), options, report, (content, file) =>
     decorateSddDoc(content, file, '.claude'))
   await copyTree(payload.commands, join(root, 'commands', 'workflow'), options, report)
-  await copyTree(payload.agents, join(root, 'agents', 'workflow'), options, report)
+  await copyTree(payload.agents, join(root, 'agents'), options, report)
 
   for (const dir of WORKING_DIRS) {
     await ensureDir(join(root, 'sdd', dir), options)
@@ -66,11 +77,11 @@ export async function installCodex (payload, options, report) {
 
   const agents = []
   for (const file of await listFiles(payload.agents)) {
-    if (extname(file) !== '.md') continue
+    if (!isAgentAsset(file)) continue
     const source = await readText(join(payload.agents, file))
     const skill = toCodexSkill(source, basename(file, '.md'))
 
-    agents.push({ name: skill.name })
+    agents.push({ name: skill.name, category: categoryOf(file) })
     await writeIfAllowed(join(root, 'skills', skill.name, 'SKILL.md'), skill.content, options, report)
   }
 

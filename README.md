@@ -19,13 +19,26 @@ npx agentspec-rdd --claude
 
 ## O que ele instala
 
-O **núcleo SDD**: o workflow de 5 fases e nada além disso. Sem domínios de KB, sem a frota de agentes de data engineering.
+O workflow de 5 fases e **os 42 agentes**. Sem os domínios de KB.
 
 | Componente | Conteúdo |
 |------------|----------|
 | `sdd/` | Templates, `WORKFLOW_CONTRACTS.yaml`, `ARCHITECTURE.md`, diretórios de trabalho |
 | Comandos de fase | `brainstorm`, `define`, `design`, `build`, `ship`, `iterate`, `create-pr` |
 | Agentes de fase | `brainstorm-agent`, `define-agent`, `design-agent`, `build-agent`, `ship-agent`, `iterate-agent` |
+| Agentes especialistas | 36 agentes de domínio, com as categorias preservadas |
+
+Os 42 agentes em 7 categorias:
+
+| Categoria | Qtd | Foco |
+|-----------|----:|------|
+| `data-engineering` | 13 | dbt, Spark, Airflow, Lakeflow, SQL, Qdrant |
+| `architect` | 8 | schema, pipeline, medallion, lakehouse, GenAI, plataforma, KB |
+| `python` | 6 | código, review, limpeza, documentação, prompts, LLM |
+| `workflow` | 6 | as 5 fases do SDD + iterate |
+| `dev` | 4 | exploração de codebase, shell, reuniões, prompt-crafter |
+| `test` | 3 | geração de testes, qualidade de dados, contratos |
+| `cloud` | 2 | CI/CD, Supabase |
 
 ```text
 BRAINSTORM (0) -> DEFINE (1) -> DESIGN (2) -> BUILD (3) -> SHIP (4)
@@ -46,7 +59,11 @@ Os dois assistentes têm formatos diferentes, então a instalação no Codex é 
 .claude/
 ├── sdd/                     templates, contratos, features/, reports/, archive/
 ├── commands/workflow/       7 slash commands
-└── agents/workflow/         6 subagentes (invocados pela ferramenta Task)
+└── agents/                  42 subagentes (invocados pela ferramenta Task)
+    ├── workflow/            6 agentes de fase
+    ├── data-engineering/    13 especialistas
+    ├── architect/           8 especialistas
+    └── ...                  python, dev, test, cloud
 ```
 
 ### `--codex`
@@ -55,9 +72,13 @@ Os dois assistentes têm formatos diferentes, então a instalação no Codex é 
 .codex/
 ├── sdd/                     mesmos documentos, caminhos reescritos para .codex/
 ├── prompts/                 7 slash commands nativos
-└── skills/<nome>/SKILL.md   6 skills convertidas dos subagentes
+└── skills/<nome>/SKILL.md   42 skills convertidas dos subagentes
 AGENTS.md                    seção gerenciada apontando para tudo acima
 ```
+
+No Codex as skills ficam todas planas em `.codex/skills/`, porque é assim que o Codex as
+descobre. A categoria de origem não se perde: o `AGENTS.md` gerado agrupa os especialistas
+por categoria numa tabela.
 
 Regras de conversão:
 
@@ -112,14 +133,20 @@ de status) é o `sdd/architecture/WORKFLOW_CONTRACTS.yaml`. Ele é a fonte da ve
 
 ---
 
-## Observação de escopo
+## Observação de escopo: o KB não vem junto
 
-O `sdd/README.md` instalado documenta a distribuição **completa** do AgentSpec: 42 agentes
-especializados em 7 categorias e 18 domínios de knowledge base. Este instalador entrega
-apenas o núcleo do workflow, então os documentos copiados levam um aviso dizendo isso.
-Enquanto você não adicionar agentes próprios, o DESIGN vai atribuir `(direct)` no lugar de
-um especialista, e os domínios de KB citados no Technical Context de um DEFINE não vão
-resolver para nada.
+Os 42 agentes vêm completos, mas os **18 domínios de knowledge base não**. Isso tem
+consequência prática: os agentes declaram no frontmatter quais domínios eles leem
+(`kb_domains: [dbt, data-quality, sql-patterns]`) e seguem uma resolução KB-First — checar
+o conhecimento local antes de qualquer fonte externa.
+
+Sem o KB instalado, esse primeiro passo não encontra nada. O Agent Matching funciona (o
+DESIGN atribui o especialista certo a cada arquivo), mas cada agente cai no próprio
+conhecimento em vez de nos padrões curados, e os domínios citados no Technical Context de
+um DEFINE não resolvem para nada.
+
+Os documentos copiados levam um aviso dizendo isso. Para fechar a lacuna, adicione os
+domínios em `.claude/kb/` (ou `.codex/kb/`).
 
 ---
 
@@ -137,8 +164,9 @@ Para testar um checkout local contra outro projeto, sem publicar nada:
 npx /caminho/para/agentspec-sdd --claude --dir ~/algum-projeto
 ```
 
-O payload é o próprio `.claude/sdd`, `.claude/commands/workflow` e `.claude/agents/workflow`
-do repositório — não há etapa de build nem cópia duplicada para manter em sincronia.
+O payload é o próprio `.claude/sdd`, `.claude/commands/workflow` e `.claude/agents` do
+repositório — não há etapa de build nem cópia duplicada para manter em sincronia. Agente
+novo colocado em `.claude/agents/<categoria>/` entra no instalador sozinho, sem configuração.
 
 ## Licença
 
