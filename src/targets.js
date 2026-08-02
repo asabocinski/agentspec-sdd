@@ -88,8 +88,12 @@ export async function installClaude (payload, options, report) {
 
   await copyTree(payload.sdd, join(root, 'sdd'), options, report, (content, file) =>
     decorateSddDoc(content, file, '.claude'))
-  await copyTree(payload.commands, join(root, 'commands', 'workflow'), options, report)
+  for (const dir of payload.commands) {
+    await copyTree(dir, join(root, 'commands', basename(dir)), options, report)
+  }
+
   await copyTree(payload.agents, join(root, 'agents'), options, report)
+  await copyTree(payload.kb, join(root, 'kb'), options, report)
 
   for (const dir of WORKING_DIRS) {
     await ensureDir(join(root, 'sdd', dir), options)
@@ -108,19 +112,23 @@ export async function installCodex (payload, options, report) {
   await copyTree(payload.sdd, join(root, 'sdd'), options, report, (content, file) =>
     rewriteForCodex(decorateSddDoc(content, file, '.codex')))
 
+  await copyTree(payload.kb, join(root, 'kb'), options, report, rewriteForCodex)
+
   for (const dir of WORKING_DIRS) {
     await ensureDir(join(root, 'sdd', dir), options)
   }
 
   const commands = []
-  for (const file of await listFiles(payload.commands)) {
-    if (extname(file) !== '.md') continue
-    const source = await readText(join(payload.commands, file))
-    const prompt = toCodexPrompt(source, basename(file, '.md'))
-    const { attrs } = parseAsset(source)
+  for (const dir of payload.commands) {
+    for (const file of await listFiles(dir)) {
+      if (extname(file) !== '.md' || basename(file) === 'README.md') continue
+      const source = await readText(join(dir, file))
+      const prompt = toCodexPrompt(source, basename(file, '.md'))
+      const { attrs } = parseAsset(source)
 
-    commands.push({ name: prompt.name, description: attrs.description ?? '' })
-    await writeIfAllowed(join(root, 'prompts', `${prompt.name}.md`), prompt.content, options, report)
+      commands.push({ name: prompt.name, description: attrs.description ?? '' })
+      await writeIfAllowed(join(root, 'prompts', `${prompt.name}.md`), prompt.content, options, report)
+    }
   }
 
   const agents = []

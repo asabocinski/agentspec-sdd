@@ -133,13 +133,19 @@ async function promptForTarget () {
 async function resolvePayload () {
   const payload = {
     sdd: join(packageRoot, '.claude', 'sdd'),
-    commands: join(packageRoot, '.claude', 'commands', 'workflow'),
-    agents: join(packageRoot, '.claude', 'agents')
+    commands: [
+      join(packageRoot, '.claude', 'commands', 'workflow'),
+      join(packageRoot, '.claude', 'commands', 'knowledge')
+    ],
+    agents: join(packageRoot, '.claude', 'agents'),
+    kb: join(packageRoot, '.claude', 'kb')
   }
 
-  for (const [name, path] of Object.entries(payload)) {
-    if (!(await pathExists(path))) {
-      throw new Error(`payload is incomplete: missing ${name} at ${path}`)
+  for (const [name, entry] of Object.entries(payload)) {
+    for (const path of [entry].flat()) {
+      if (!(await pathExists(path))) {
+        throw new Error(`payload is incomplete: missing ${name} at ${path}`)
+      }
     }
   }
 

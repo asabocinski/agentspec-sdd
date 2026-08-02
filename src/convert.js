@@ -161,11 +161,11 @@ export function decorateSddDoc (content, file, targetDir) {
 
   const notice = [
     '> **Installed by `agentspec-rdd`.** This project has the 5-phase workflow',
-    `> (\`${targetDir}/sdd/\`), the 7 phase commands, and all 42 agents.`,
+    `> (\`${targetDir}/sdd/\`), all 42 agents, all 18 KB domains, and \`/create-kb\`.`,
     '>',
-    '> The 18 KB domains described below are **not** installed. Agent Matching works, but',
-    '> KB-First resolution finds nothing locally, so agents fall back to their own knowledge',
-    `> instead of curated patterns. Build the domains your project needs under \`${targetDir}/kb/\`.`,
+    '> Of the 29 commands documented below, 8 ship: the 7 phase commands plus `/create-kb`.',
+    '> The data engineering, visual explainer, and utility commands are not installed —',
+    '> the agents they would call are, so drive those flows through the phase commands.',
     ''
   ].join('\n')
 
@@ -246,7 +246,7 @@ export function buildAgentsSection (commands, agents) {
     '|----------|------:|--------|',
     specialistRows,
     '',
-    '### Knowledge base (not installed)',
+    '### Knowledge base',
     '',
     'Every skill declares the KB domains it reads (`kb_domains:` in its frontmatter) and follows',
     '**KB-First resolution**: read the local domain before reaching for anything external.',
@@ -257,10 +257,9 @@ export function buildAgentsSection (commands, agents) {
     '3. Only then fall back to outside knowledge',
     '```',
     '',
-    'This install ships no `.codex/kb/`, so step 1 finds nothing and the skills answer from',
-    'their own knowledge. Adding a domain is what turns a skill from generally competent into',
-    "one that follows your project's agreed patterns. Create `.codex/kb/{domain}/index.md` plus",
-    '`concepts/` and `patterns/`, then name that domain in a DEFINE Technical Context.',
+    '`.codex/kb/` ships with 18 domains, registered in `.codex/kb/_index.yaml`. A DEFINE names',
+    'the domains it needs in its Technical Context, and DESIGN and BUILD pull patterns from',
+    'exactly those. Run `/create-kb` to add a domain of your own.',
     '',
     '### Where artifacts live',
     '',

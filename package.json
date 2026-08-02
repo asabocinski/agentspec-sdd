@@ -24,7 +24,9 @@
     "src",
     ".claude/sdd",
     ".claude/commands/workflow",
+    ".claude/commands/knowledge",
     ".claude/agents",
+    ".claude/kb",
     "README.md"
   ],
   "scripts": {

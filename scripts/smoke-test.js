@@ -7,6 +7,30 @@ import { main } from '../src/cli.js'
 const checks = []
 const check = (name, condition) => checks.push({ name, ok: Boolean(condition) })
 
+/**
+ * The contract that makes agents useful: an agent declaring `kb_domains: [dbt]`
+ * must find `kb/dbt/` after install, or its KB-First step silently finds nothing.
+ */
+async function everyDeclaredDomainExists (projectDir) {
+  const agentsRoot = join(projectDir, '.claude/agents')
+  const declared = new Set()
+
+  for (const file of await listFiles(agentsRoot)) {
+    if (!file.includes('/') || !file.endsWith('.md')) continue
+    const match = (await readFile(join(agentsRoot, file), 'utf8')).match(/^kb_domains:\s*\[(.*?)\]/m)
+    if (!match) continue
+    for (const domain of match[1].split(',').map((d) => d.trim()).filter(Boolean)) declared.add(domain)
+  }
+
+  const missing = []
+  for (const domain of declared) {
+    if (!(await pathExists(join(projectDir, '.claude/kb', domain, 'index.md')))) missing.push(domain)
+  }
+
+  if (missing.length) console.error(`      missing domains: ${missing.join(', ')}`)
+  return declared.size > 0 && missing.length === 0
+}
+
 const sandbox = await mkdtemp(join(tmpdir(), 'agentspec-rdd-'))
 const silence = console.log
 console.log = () => {}
@@ -29,7 +53,15 @@ try {
     await pathExists(join(claudeDir, '.claude/agents/data-engineering/dbt-specialist.md')))
   check('claude: working dirs created',
     await pathExists(join(claudeDir, '.claude/sdd/features')))
-  check('claude: KB is not shipped', !(await pathExists(join(claudeDir, '.claude/kb'))))
+  check('claude: 18 KB domains installed',
+    (await readdir(join(claudeDir, '.claude/kb'), { withFileTypes: true }))
+      .filter((e) => e.isDirectory() && !['_templates', 'shared'].includes(e.name)).length === 18)
+  check('claude: every domain an agent declares is present', await everyDeclaredDomainExists(claudeDir))
+  check('claude: /create-kb and its dependencies shipped',
+    (await pathExists(join(claudeDir, '.claude/commands/knowledge/create-kb.md'))) &&
+    (await pathExists(join(claudeDir, '.claude/kb/_index.yaml'))) &&
+    (await pathExists(join(claudeDir, '.claude/kb/_templates/concept.md.template'))) &&
+    (await pathExists(join(claudeDir, '.claude/agents/architect/kb-architect.md'))))
 
   const codexDir = join(sandbox, 'codex-project')
   await mkdir(codexDir, { recursive: true })
@@ -41,7 +73,8 @@ try {
   const agentsMd = await readFile(join(codexDir, 'AGENTS.md'), 'utf8')
   const contracts = await readFile(join(codexDir, '.codex/sdd/architecture/WORKFLOW_CONTRACTS.yaml'), 'utf8')
 
-  check('codex: prompts generated', (await listFiles(join(codexDir, '.codex/prompts'))).length === 7)
+  check('codex: 8 prompts generated (7 phases + create-kb)',
+    (await listFiles(join(codexDir, '.codex/prompts'))).length === 8)
   check('codex: 42 skills generated', (await listFiles(join(codexDir, '.codex/skills'))).length === 42)
   check('codex: specialist skill converted',
     await pathExists(join(codexDir, '.codex/skills/dbt-specialist/SKILL.md')))
@@ -56,9 +89,12 @@ try {
   check('codex: skill keeps origin metadata', skill.includes('| **Tier** |'))
   check('codex: paths rewritten in prompts', !define.includes('.claude/'))
   check('codex: paths rewritten in sdd', !contracts.includes('.claude/'))
-  check('codex: KB is not shipped', !(await pathExists(join(codexDir, '.codex/kb'))))
-  check('codex: AGENTS.md explains the missing KB',
-    agentsMd.includes('Knowledge base (not installed)') && agentsMd.includes('KB-First resolution'))
+  check('codex: KB installed and rewritten',
+    await pathExists(join(codexDir, '.codex/kb/dbt/patterns/incremental-model.md')))
+  check('codex: /create-kb became a prompt',
+    await pathExists(join(codexDir, '.codex/prompts/create-kb.md')))
+  check('codex: AGENTS.md documents KB-First',
+    agentsMd.includes('### Knowledge base') && agentsMd.includes('KB-First resolution'))
 
   // Scans the whole tree rather than sampled files: a file type missing from
   // isTextAsset would otherwise ship with unrewritten .claude/ paths.

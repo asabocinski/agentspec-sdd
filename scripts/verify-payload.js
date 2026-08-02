@@ -10,7 +10,11 @@ const EXPECTED = [
   { path: '.claude/sdd/templates', kind: 'dir', minFiles: 5 },
   { path: '.claude/commands/workflow', kind: 'dir', minFiles: 7 },
   { path: '.claude/agents/workflow', kind: 'dir', minFiles: 6 },
-  { path: '.claude/agents', kind: 'dir', minFiles: 42 }
+  { path: '.claude/commands/knowledge', kind: 'dir', minFiles: 1 },
+  { path: '.claude/agents', kind: 'dir', minFiles: 42 },
+  { path: '.claude/kb', kind: 'dir', minFiles: 200 },
+  { path: '.claude/kb/_index.yaml', kind: 'file' },
+  { path: '.claude/kb/_templates', kind: 'dir', minFiles: 0 }
 ]
 
 const failures = []

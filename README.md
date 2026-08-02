@@ -19,16 +19,16 @@ npx agentspec-rdd --claude
 
 ## O que ele instala
 
-O workflow de 5 fases e **os 42 agentes**. O knowledge base **não** vem junto — ele é
-específico do seu projeto, e a seção [Knowledge Base](#knowledge-base) explica por que isso
-importa e como criar o seu.
+O workflow de 5 fases, **os 42 agentes** e **os 18 domínios de KB** que eles declaram ler.
 
 | Componente | Conteúdo |
 |------------|----------|
 | `sdd/` | Templates, `WORKFLOW_CONTRACTS.yaml`, `ARCHITECTURE.md`, diretórios de trabalho |
 | Comandos de fase | `brainstorm`, `define`, `design`, `build`, `ship`, `iterate`, `create-pr` |
+| `/create-kb` | Cria um domínio de KB novo do zero |
 | Agentes de fase | `brainstorm-agent`, `define-agent`, `design-agent`, `build-agent`, `ship-agent`, `iterate-agent` |
 | Agentes especialistas | 36 agentes de domínio, com as categorias preservadas |
+| `kb/` | 18 domínios, 222 arquivos, `_index.yaml`, `_templates/` e `shared/` |
 
 Os 42 agentes em 7 categorias:
 
@@ -61,7 +61,10 @@ Os dois assistentes têm formatos diferentes, então a instalação no Codex é 
 .claude/
 ├── .agentspec-rdd.json      manifesto: o que foi instalado (usado na desinstalação)
 ├── sdd/                     templates, contratos, features/, reports/, archive/
-├── commands/workflow/       7 slash commands
+├── commands/
+│   ├── workflow/            7 slash commands de fase
+│   └── knowledge/           /create-kb
+├── kb/                      18 domínios + _index.yaml + _templates/ + shared/
 └── agents/                  42 subagentes (invocados pela ferramenta Task)
     ├── workflow/            6 agentes de fase
     ├── data-engineering/    13 especialistas
@@ -75,7 +78,8 @@ Os dois assistentes têm formatos diferentes, então a instalação no Codex é 
 .codex/
 ├── .agentspec-rdd.json      manifesto: o que foi instalado (usado na desinstalação)
 ├── sdd/                     mesmos documentos, caminhos reescritos para .codex/
-├── prompts/                 7 slash commands nativos
+├── prompts/                 8 slash commands nativos (7 fases + create-kb)
+├── kb/                      os mesmos 18 domínios, caminhos reescritos
 └── skills/<nome>/SKILL.md   42 skills convertidas dos subagentes
 AGENTS.md                    seção gerenciada apontando para tudo acima
 ```
@@ -122,10 +126,6 @@ O resumo sempre informa quantos arquivos foram criados, atualizados e pulados.
 
 ## Knowledge Base
 
-O KB **não vem no instalador**, e isso é proposital: os padrões que importam são os do
-**seu** projeto, não os de outro. Mas os agentes foram construídos esperando que ele exista.
-Vale entender o que muda com e sem ele.
-
 ### Por que importa
 
 Todo agente declara no frontmatter quais domínios lê:
@@ -155,116 +155,47 @@ responde com o padrão que **a sua equipe decidiu**. A diferença na prática:
 
 O KB é onde uma decisão tomada uma vez para de ser reexplicada a cada tarefa.
 
-### Estrutura de um domínio
+### Os 18 domínios que vêm instalados
 
-```text
-kb/{dominio}/
-├── index.md              visão geral e navegação — o agente lê isto primeiro
-├── quick-reference.md    tabelas de consulta rápida        (até 100 linhas)
-├── concepts/             o que é e por quê     3-6 arquivos (até 150 linhas cada)
-│   ├── incremental-strategies.md
-│   └── testing-framework.md
-└── patterns/             como fazer, copiável  3-6 arquivos (até 200 linhas cada)
-    ├── incremental-model.md
-    └── snapshot-scd2.md
-```
+| Grupo | Domínios |
+|-------|----------|
+| Data engineering | `dbt`, `spark`, `airflow`, `sql-patterns`, `data-modeling`, `data-quality` |
+| Infraestrutura | `lakehouse`, `medallion`, `lakeflow`, `cloud-platforms`, `terraform`, `supabase` |
+| IA | `ai-data-engineering`, `prompt-engineering`, `genai` |
+| Fundamentos | `python`, `pydantic`, `testing` |
 
-Os limites de tamanho não são estética: agente que precisa ler 600 linhas para achar uma
-resposta vai parar de ler. **Concept** explica o porquê e o trade-off; **pattern** entrega
-código pronto para copiar. Se um arquivo estoura o limite, ele quer virar dois.
+Não é uma seleção arbitrária: **todo domínio aqui é declarado por pelo menos um agente**.
+`data-quality` sozinho é lido por 13 deles. Instalar os agentes sem esses domínios deixaria
+o passo 1 do KB-First sem resposta.
 
-### Criando um domínio
-
-**1. Crie a estrutura**
+### Criando um domínio novo
 
 ```bash
-mkdir -p .claude/kb/meu-dominio/{concepts,patterns}
-touch .claude/kb/meu-dominio/{index.md,quick-reference.md}
+/create-kb "iceberg"
 ```
 
-**2. Escreva o `index.md`** — é o único arquivo que o agente lê inteiro, toda vez. Ele é um
-mapa, não conteúdo:
-
-```markdown
-# Meu Domínio
-
-> Uma linha dizendo o que este domínio cobre.
-
-## Conceitos
-| Arquivo | Cobre |
-|---------|-------|
-| `concepts/particionamento.md` | Como escolher chave de partição |
-
-## Patterns
-| Arquivo | Resolve |
-|---------|---------|
-| `patterns/carga-incremental.md` | Carga incremental com late-arriving data |
-```
-
-**3. Escreva um pattern de verdade.** O teste é: dá para copiar e usar sem editar?
-
-```markdown
-# Carga Incremental
-
-> Quando a tabela é grande demais para full refresh e chegam fatos atrasados.
-
-## Quando usar
-- Volume acima de ~10M linhas
-- Existe coluna de atualização confiável
-
-## Implementação
-\`\`\`sql
--- código completo, com os nomes e tipos que vocês realmente usam
-\`\`\`
-
-## Armadilhas
-| Erro | Consequência | Em vez disso |
-|------|--------------|--------------|
-| Filtrar por `created_at` | Perde registro atualizado | Filtrar por `updated_at` |
-```
-
-**4. Registre em `.claude/kb/_index.yaml`** — é assim que o domínio passa a ser descoberto:
+O comando cria a estrutura, escreve `index.md` e `quick-reference.md`, gera concepts e
+patterns a partir dos templates em `kb/_templates/`, valida contra MCP e registra o domínio
+em `kb/_index.yaml`. Depois é só citá-lo onde interessa:
 
 ```yaml
-domains:
-  meu-dominio:
-    name: meu-dominio
-    description: "Uma linha — é isso que o agente lê ao decidir se o domínio é relevante"
-    path: meu-dominio/
-    entry_points:
-      index: index.md
-      quick_reference: quick-reference.md
+# no frontmatter do agente que deve lê-lo
+kb_domains: [iceberg, lakehouse]
 ```
-
-**5. Conecte ao agente**, adicionando o domínio ao `kb_domains` de quem deve lê-lo:
-
-```yaml
-kb_domains: [meu-dominio, data-quality]
-```
-
-**6. Use no workflow**, citando o domínio no Technical Context de um DEFINE:
 
 ```markdown
-| **KB Domains** | meu-dominio, sql-patterns |
+<!-- no Technical Context de um DEFINE -->
+| **KB Domains** | iceberg, lakehouse |
 ```
 
-A partir daí o DESIGN puxa os patterns desses domínios e o BUILD os consulta ao escrever
-cada arquivo.
+### Por onde começar a escrever os seus
 
-### Por onde começar
+Não tente cobrir um domínio inteiro de saída. Na próxima vez que você corrigir a mesma coisa
+pela segunda vez numa revisão, **isso** é um pattern. Escreva o arquivo, e a terceira vez
+não acontece.
 
-Não tente cobrir um domínio inteiro de saída. O caminho que funciona é o inverso: na próxima
-vez que você corrigir a mesma coisa pela segunda vez numa revisão, **isso** é um pattern.
-Escreva o arquivo, registre o domínio, e a terceira vez não acontece.
-
-Um domínio com três patterns que vocês de fato seguem vale mais que dezoito domínios
-copiados de outro projeto.
-
-> A distribuição completa do AgentSpec traz 18 domínios prontos (dbt, spark, airflow,
-> sql-patterns, data-modeling, data-quality, lakehouse, medallion, lakeflow, cloud-platforms,
-> terraform, supabase, ai-data-engineering, prompt-engineering, genai, pydantic, python,
-> testing) e o comando `/create-kb`, que faz os passos 1 a 4 sozinho. Nenhum dos dois vem
-> neste instalador.
+Um domínio com três patterns que a sua equipe de fato segue vale mais que dezoito copiados
+de outro projeto.
 
 ---
 
@@ -346,12 +277,14 @@ de status) é o `sdd/architecture/WORKFLOW_CONTRACTS.yaml`. Ele é a fonte da ve
 
 ## Observação de escopo
 
-O `sdd/README.md` instalado documenta a distribuição **completa** do AgentSpec: 29 comandos
-e 18 domínios de KB. Este instalador entrega os 42 agentes e os 7 comandos de fase — os
-outros 22 comandos e o KB ficam de fora. Os documentos copiados levam um aviso dizendo isso,
-para você não ir atrás de um `/schema` que não foi instalado.
+O `sdd/README.md` instalado documenta a distribuição **completa** do AgentSpec, com 29
+comandos. Este instalador entrega 8 deles: os 7 de fase mais o `/create-kb`. Os 21 restantes
+— data engineering (`/schema`, `/pipeline`, ...), visual explainer e utilidades — ficam de
+fora. Os agentes que eles chamariam estão todos instalados, então dá para conduzir esses
+fluxos pelos comandos de fase.
 
-Sobre o KB, veja [Knowledge Base](#knowledge-base): ele é de propósito seu, não nosso.
+Os documentos copiados levam um aviso dizendo isso, para você não ir atrás de um `/schema`
+que não existe no seu projeto.
 
 ---
 
