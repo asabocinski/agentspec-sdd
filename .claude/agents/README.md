@@ -2,7 +2,7 @@
 
 AgentSpec deploys **42 specialized agents** across **7 categories**, each built on a **three-tier template system** with mandatory **KB-First knowledge resolution**. Every agent carries a cognitive framework that enforces structured confidence scoring, provenance tracking, and explicit stop conditions -- turning raw LLM capability into disciplined, auditable domain expertise.
 
-`42 agents | 7 categories | 3 tiers (T1/T2/T3) | 19 KB domains | 100% template compliance`
+`42 agents | 7 categories | 3 tiers (T1/T2/T3) | 18 KB domains | 100% template compliance`
 
 ---
 

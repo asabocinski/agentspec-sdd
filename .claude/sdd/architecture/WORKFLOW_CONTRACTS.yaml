@@ -828,9 +828,9 @@ version_history:
     date: "2026-04-14"
     changes:
       - "Plugin distribution format for Claude Code marketplace"
-      - "8 agent categories (58 agents) with full cloud coverage"
+      - "Curated data engineering distribution: 7 agent categories (42 agents)"
       - "29 commands (7 SDD + 8 DE + 8 visual + 6 core)"
-      - "23 KB domains covering full data engineering stack"
+      - "18 KB domains covering the data engineering stack"
 
   - version: "2.1.0"
     date: "2026-03-26"

@@ -3,7 +3,7 @@
 > The structured knowledge layer that grounds every agent response in verified, domain-specific content.
 
 ```
-19 domains | 206 files | 29,500+ lines | MCP-validated 2026-03-26
+18 domains | 212 files | 29,400+ lines | MCP-validated 2026-03-26
 ```
 
 ---
@@ -77,26 +77,27 @@ Some domains extend this with additional directories:
 | Domain | Files | Description | Used By |
 |--------|------:|-------------|---------|
 | lakehouse | 10 | Iceberg v3, Delta Lake 4.1, DuckLake, Unity, Gravitino | lakehouse-architect, data-platform-engineer, lakeflow-architect, lakeflow-expert, lakeflow-pipeline-builder, lakeflow-specialist, spark-performance-analyzer |
-| medallion | 10 | Bronze/Silver/Gold layer design, quality progression | medallion-architect, lakeflow-architect, lakeflow-expert, lakeflow-pipeline-builder |
+| medallion | 11 | Bronze/Silver/Gold layer design, quality progression | medallion-architect, lakeflow-architect, lakeflow-expert, lakeflow-pipeline-builder |
 | cloud-platforms | 10 | Snowflake Cortex, Databricks LakeFlow, BigQuery AI | data-platform-engineer, spark-specialist, spark-performance-analyzer |
 | lakeflow | 26 | DLT pipelines, materialized views, streaming tables, DABs | lakeflow-architect, lakeflow-expert, lakeflow-pipeline-builder, lakeflow-specialist, ci-cd-specialist |
-| terraform | 14 | Resources, modules, providers, state, IaC patterns | ci-cd-specialist |
+| terraform | 15 | Resources, modules, providers, state, IaC patterns | ci-cd-specialist |
+| supabase | 9 | pgvector, RLS policies, Edge Functions, Auth, Realtime, migrations | supabase-specialist |
 
 ### AI and Modern
 
 | Domain | Files | Description | Used By |
 |--------|------:|-------------|---------|
-| genai | 11 | Multi-agent systems, RAG, state machines, tool calling, guardrails | genai-architect, ai-prompt-specialist, llm-specialist, qdrant-specialist |
-| prompt-engineering | 11 | Chain-of-thought, structured extraction, few-shot, system prompts | ai-prompt-specialist, llm-specialist, genai-architect |
+| genai | 12 | Multi-agent systems, RAG, state machines, tool calling, guardrails | genai-architect, ai-prompt-specialist, llm-specialist, qdrant-specialist |
+| prompt-engineering | 12 | Chain-of-thought, structured extraction, few-shot, system prompts | ai-prompt-specialist, llm-specialist, genai-architect |
 | ai-data-engineering | 12 | RAG pipelines, vector DBs, feature stores, LLMOps, embeddings | ai-data-engineer, supabase-specialist, qdrant-specialist, genai-architect |
 
 ### Development Foundations
 
 | Domain | Files | Description | Used By |
 |--------|------:|-------------|---------|
-| python | 10 | Dataclasses, type hints, generators, context managers | python-developer, code-cleaner, code-documenter |
-| pydantic | 10 | BaseModel, validators, LLM output validation, extraction schemas | python-developer, ai-prompt-specialist, llm-specialist |
-| testing | 10 | pytest, fixtures, mocking, parametrize, Spark testing | python-developer, test-generator |
+| python | 11 | Dataclasses, type hints, generators, context managers | python-developer, code-cleaner, code-documenter, prompt-crafter |
+| pydantic | 11 | BaseModel, validators, LLM output validation, extraction schemas | python-developer, ai-prompt-specialist, llm-specialist |
+| testing | 11 | pytest, fixtures, mocking, parametrize, Spark testing | python-developer, test-generator |
 
 ---
 
@@ -124,7 +125,7 @@ Each agent declares a `kb_domains` field in its frontmatter that determines whic
 | Agent | KB Domains |
 |-------|------------|
 | ci-cd-specialist | terraform, lakeflow |
-| supabase-specialist | ai-data-engineering, data-modeling |
+| supabase-specialist | supabase, ai-data-engineering, data-modeling |
 
 **Data engineering agents** (13 agents in `.claude/agents/data-engineering/`):
 
@@ -163,7 +164,9 @@ Each agent declares a `kb_domains` field in its frontmatter that determines whic
 | data-quality-analyst | data-quality, dbt, data-modeling |
 | test-generator | data-quality, dbt, testing |
 
-**Dev and Workflow agents** (10 agents) do not use KB domains directly.
+**Dev agents** (4 agents in `.claude/agents/dev/`): only `prompt-crafter` declares a KB domain (`python`). The other three -- `codebase-explorer`, `meeting-analyst`, `shell-script-specialist` -- do not use KB domains directly.
+
+**Workflow agents** (6 agents in `.claude/agents/workflow/`) do not use KB domains directly; they read the domains named in the DEFINE Technical Context instead.
 
 ---
 
@@ -256,7 +259,7 @@ The machine-readable registry lives at `.claude/kb/_index.yaml`. It defines:
 - **limits** -- File size limits (single source of truth)
 - **templates** -- Paths to scaffolding templates
 - **shared** -- Cross-domain resources (anti-patterns library)
-- **domains** -- Complete registry of all 19 domains with:
+- **domains** -- Complete registry of all 18 domains with:
   - `name` -- Domain identifier
   - `description` -- One-line summary
   - `path` -- Directory path relative to `.claude/kb/`

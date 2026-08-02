@@ -120,24 +120,23 @@
 |   +-- knowledge/               # 1 KB command
 |   +-- review/                  # 1 review command
 |
-+-- agents/                      # 58 specialized agents
++-- agents/                      # 42 specialized agents
 |   +-- workflow/                # 6 SDD phase agents
 |   +-- architect/               # 8 system-level design
-|   +-- cloud/                   # 10 AWS, GCP, CI/CD
-|   +-- platform/                # 6 Microsoft Fabric
+|   +-- data-engineering/        # 13 DE implementation
 |   +-- python/                  # 6 code quality, prompts
-|   +-- test/                    # 3 testing, contracts
-|   +-- data-engineering/        # 15 DE implementation
 |   +-- dev/                     # 4 developer productivity
+|   +-- test/                    # 3 testing, contracts
+|   +-- cloud/                   # 2 CI/CD, Supabase
 |
-+-- kb/                          # 23 curated KB domains
++-- kb/                          # 18 curated KB domains
 |   +-- dbt/                     # dbt patterns
 |   +-- spark/                   # PySpark, Spark SQL
 |   +-- sql-patterns/            # SQL best practices
 |   +-- airflow/                 # DAG patterns
-|   +-- streaming/               # Flink, Kafka, CDC
+|   +-- lakeflow/                # Databricks DLT
 |   +-- data-modeling/           # Star schema, Data Vault
-|   +-- ... (17 more domains)
+|   +-- ... (12 more domains)
 |
 +-- sdd/
     +-- _index.md                # Workflow overview
@@ -389,6 +388,7 @@
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 3.0.0 | 2026-04-14 | Folder structure for the curated set: 42 agents, 7 categories, 18 KB domains |
 | 2.1.0 | 2026-03-26 | Updated folder structure for 58 agents, 8 categories, 23 KB domains |
 | 2.0.0 | 2026-03-26 | Data engineering pivot |
 | 1.0.0 | 2026-02-17 | Public release as AgentSpec v1.0.0 |

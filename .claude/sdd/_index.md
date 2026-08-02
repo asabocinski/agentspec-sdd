@@ -13,8 +13,8 @@ AgentSpec provides Agent Matching (Design phase) and Agent Delegation (Build pha
 |---------------|--------------|
 | 8 phases | **5 phases** (Brainstorm optional) |
 | 3 development modes | **1 unified stream** |
-| Generic agents only | **58 specialized agents** across 8 categories |
-| No domain expertise | **23 KB domains** for data engineering |
+| Generic agents only | **42 specialized agents** across 7 categories |
+| No domain expertise | **18 KB domains** for data engineering |
 | 12+ commands | **29 commands** (7 SDD + 8 DE + 8 visual + 6 core) |
 | 11+ artifact types | **5 artifact types** |
 | Separate ADR files | **Inline decisions** |
@@ -288,8 +288,8 @@ BRAINSTORM_*.md
 | SDD Commands | `.claude/commands/workflow/` |
 | DE Commands | `.claude/commands/data-engineering/` |
 | Core Commands | `.claude/commands/core/` |
-| Agents (58) | `.claude/agents/` |
-| KB Domains (23) | `.claude/kb/` |
+| Agents (42) | `.claude/agents/` |
+| KB Domains (18) | `.claude/kb/` |
 | Templates | `.claude/sdd/templates/` |
 | Contracts | `.claude/sdd/architecture/WORKFLOW_CONTRACTS.yaml` |
 
@@ -299,6 +299,7 @@ BRAINSTORM_*.md
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 3.0.0 | 2026-04-14 | Curated data engineering distribution: 42 agents, 7 categories, 18 KB domains |
 | 2.1.0 | 2026-03-26 | Multi-cloud coverage: 58 agents, 8 categories, 23 KB domains |
 | 2.0.0 | 2026-03-26 | Data engineering pivot: 11 KB domains, 11 DE agents, 8 DE commands |
 | 1.0.0 | 2026-02-17 | Public release as AgentSpec v1.0.0 |

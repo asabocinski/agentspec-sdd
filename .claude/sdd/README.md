@@ -13,13 +13,15 @@
 | **Project** | AgentSpec - Spec-Driven Development Framework |
 | **Tagline** | Spec-Driven Development for Data Engineering |
 | **Business Problem** | Gap between unstructured "vibe coding" and stale traditional specifications |
-| **Solution** | 5-phase workflow with 58 specialized AI agents, 23 KB domains, and 29 commands |
+| **Solution** | 5-phase workflow with 42 specialized AI agents, 18 KB domains, and 29 commands |
 | **Target Audience** | Data engineering teams using Claude Code |
 | **License** | MIT |
 
 ### What This Is
 
 AgentSpec transforms requirements into working code with full traceability. It provides a structured 5-phase development workflow (Brainstorm -> Define -> Design -> Build -> Ship) powered by specialized AI agents that match to tasks automatically, grounded by curated knowledge bases for accuracy.
+
+> **Scope of this repository:** this is the curated data engineering distribution of AgentSpec. It ships 42 agents across 7 categories and 18 KB domains. The Microsoft Fabric agent category and the `streaming`, `aws`, `gcp`, `microsoft-fabric`, and `modern-stack` KB domains are part of the wider upstream framework and are **not** included here.
 
 **The Core Insight:** *"The AI doesn't just need to know WHAT to build - it needs to know WHO should build each part."*
 
@@ -119,7 +121,7 @@ Traditional specs produce a task list. AgentSpec produces a **team assignment**.
                            +-------------------------------------+
                            |         .claude/kb/                 |
                            |  +------------------------------+   |
-                           |  |  23 curated KB domains       |   |
+                           |  |  18 curated KB domains       |   |
                            |  |  (dbt, Spark, Airflow, ...)  |   |
                            |  +------------------------------+   |
                            +------------------+------------------+
@@ -215,7 +217,7 @@ Glob(.claude/           agents:                 stg_orders.sql -> @dbt-specialis
   agents/**/*.md)         dbt-specialist:       spark_job.py -> @spark-engineer
        |                    keywords: [dbt,     quality.py -> @data-quality-analyst
        v                      model, staging]   dag.py -> @airflow-specialist
-58 agent files              role: "Data
+42 agent files              role: "Data
                               Transformation
                               Engineer"
 ```
@@ -263,7 +265,7 @@ Build invokes matched specialists via the Task tool:
 
 ## The Agent Ecosystem
 
-AgentSpec leverages an ecosystem of **58 specialized agents** across 8 categories:
+AgentSpec leverages an ecosystem of **42 specialized agents** across 7 categories:
 
 ### By Category
 
@@ -271,12 +273,13 @@ AgentSpec leverages an ecosystem of **58 specialized agents** across 8 categorie
 |----------|-------|------------|----------------|
 | **Workflow** | 6 | brainstorm, define, design, build, ship, iterate | SDD phase execution |
 | **Architect** | 8 | schema-designer, pipeline-architect, medallion-architect, lakehouse-architect, genai-architect, the-planner, data-platform-engineer, kb-architect | System-level design |
-| **Cloud** | 10 | aws-data-architect, aws-deployer, aws-lambda-architect, gcp-data-architect, ai-data-engineer-cloud, ai-data-engineer-gcp, ai-prompt-specialist-gcp, lambda-builder, ci-cd-specialist, supabase-specialist | Cloud infrastructure |
-| **Platform** | 6 | fabric-architect, fabric-pipeline-developer, fabric-security-specialist, fabric-cicd-specialist, fabric-logging-specialist, fabric-ai-specialist | Microsoft Fabric |
+| **Data Engineering** | 13 | dbt-specialist, spark-engineer, spark-specialist, spark-troubleshooter, spark-performance-analyzer, sql-optimizer, airflow-specialist, lakeflow-specialist, lakeflow-expert, lakeflow-architect, lakeflow-pipeline-builder, ai-data-engineer, qdrant-specialist | DE implementation |
 | **Python** | 6 | python-developer, code-reviewer, code-cleaner, code-documenter, llm-specialist, ai-prompt-specialist | Code quality and prompts |
-| **Test** | 3 | test-generator, data-quality-analyst, data-contracts-engineer | Quality assurance |
-| **Data Engineering** | 15 | dbt-specialist, spark-engineer, spark-specialist, spark-troubleshooter, spark-performance-analyzer, spark-streaming-architect, sql-optimizer, streaming-engineer, airflow-specialist, lakeflow-specialist, lakeflow-expert, lakeflow-architect, lakeflow-pipeline-builder, ai-data-engineer, qdrant-specialist | DE implementation |
 | **Dev** | 4 | prompt-crafter, codebase-explorer, shell-script-specialist, meeting-analyst | Developer productivity |
+| **Test** | 3 | test-generator, data-quality-analyst, data-contracts-engineer | Quality assurance |
+| **Cloud** | 2 | ci-cd-specialist, supabase-specialist | Cloud infrastructure and CI/CD |
+
+Each agent declares a tier (T1 utility / T2 domain expert / T3 platform specialist) in its frontmatter. See `.claude/agents/README.md` for the tier matrix and the escalation map.
 
 ### Agent Structure
 
@@ -317,34 +320,30 @@ Design phase matches agents using these keywords:
 
 ## Knowledge Base Integration
 
-AgentSpec integrates deeply with 23 curated Knowledge Base domains:
+AgentSpec integrates deeply with 18 curated Knowledge Base domains (212 files, ~29,400 lines):
 
 ### Available Domains
 
-| Domain | Focus |
-|--------|-------|
-| dbt | Transformations, incremental strategies, testing, mesh |
-| spark | DataFrames, Catalyst optimizer, read/write patterns |
-| sql-patterns | Window functions, CTEs, cross-dialect, deduplication |
-| airflow | DAG design, operators, sensors, dynamic task mapping |
-| streaming | Flink, Kafka, CDC patterns, streaming databases |
-| data-modeling | Star schema, Data Vault, SCD, normalization |
-| data-quality | Great Expectations, Soda, observability, contracts |
-| lakehouse | Iceberg, Delta Lake, DuckLake, catalogs |
-| medallion | Bronze/Silver/Gold layers, data quality gates |
-| lakeflow | Databricks DLT, serverless pipelines |
-| cloud-platforms | Snowflake, Databricks, BigQuery |
-| aws | Lambda, S3, Glue, SAM |
-| gcp | Cloud Run, Pub/Sub, BigQuery |
-| microsoft-fabric | Lakehouse, Warehouse, Pipelines, AI |
-| modern-stack | DuckDB, Polars, SQLMesh |
-| ai-data-engineering | RAG, vector DBs, feature stores, LLMOps |
-| prompt-engineering | Chain-of-thought, extraction, structured output |
-| genai | Multi-agent systems, guardrails, tool calling |
-| pydantic | Validation, LLM output schemas |
-| python | Dataclasses, type hints, clean architecture |
-| testing | pytest, fixtures, integration tests |
-| terraform | Modules, state, workspaces |
+| Domain | Files | Focus |
+|--------|------:|-------|
+| dbt | 12 | Fusion Engine, Mesh, Semantic Layer, models, macros, tests |
+| spark | 11 | DataFrames, Spark SQL, Real-Time Mode, Delta integration |
+| sql-patterns | 9 | Window functions, CTEs, cross-dialect, deduplication |
+| airflow | 10 | Airflow 3.x TaskFlow, DAG design, Dagster/Prefect comparison |
+| data-modeling | 10 | Star schema, Data Vault, SCD, schema evolution |
+| data-quality | 10 | Great Expectations, Soda, dbt tests, ODCS, observability |
+| lakehouse | 10 | Iceberg v3, Delta Lake 4.1, DuckLake, Unity, Gravitino |
+| medallion | 11 | Bronze/Silver/Gold layers, data quality progression |
+| lakeflow | 26 | Databricks DLT, materialized views, streaming tables, DABs |
+| cloud-platforms | 10 | Snowflake Cortex, Databricks LakeFlow, BigQuery AI |
+| terraform | 15 | Resources, modules, providers, state, workspaces |
+| supabase | 9 | pgvector, RLS policies, Edge Functions, Auth, Realtime |
+| ai-data-engineering | 12 | RAG, vector DBs, feature stores, LLMOps, embeddings |
+| prompt-engineering | 12 | Chain-of-thought, extraction, few-shot, system prompts |
+| genai | 12 | Multi-agent systems, guardrails, tool calling, state machines |
+| pydantic | 11 | Validation, LLM output schemas, extraction models |
+| python | 11 | Dataclasses, type hints, generators, project structure |
+| testing | 11 | pytest, fixtures, mocking, parametrize, Spark testing |
 
 Domains are registered in `.claude/kb/_index.yaml`. Use `/create-kb` to add new domains.
 
@@ -375,7 +374,7 @@ KB Domains:          ->    Read patterns:       ->    Agents consult:
 
 ## Commands & Artifacts
 
-### All Commands (21)
+### All Commands (29)
 
 #### SDD Workflow (7)
 
@@ -401,6 +400,21 @@ KB Domains:          ->    Read patterns:       ->    Agents consult:
 | `/ai-pipeline` | RAG/embedding pipeline scaffolding |
 | `/data-contract` | Contract authoring (ODCS) |
 | `/migrate` | Legacy ETL migration |
+
+#### Visual Explainer (8)
+
+Generate self-contained HTML pages for visual documentation.
+
+| Command | Purpose |
+|---------|---------|
+| `/generate-web-diagram` | Standalone HTML diagram |
+| `/generate-slides` | Magazine-quality slide deck |
+| `/generate-visual-plan` | Visual implementation plan with state machines |
+| `/diff-review` | Before/after architecture comparison |
+| `/plan-review` | Current codebase vs. proposed plan |
+| `/project-recap` | Project state, decisions, cognitive debt |
+| `/fact-check` | Verify document accuracy against the codebase |
+| `/share` | Share the generated HTML page via Vercel |
 
 #### Core & Utilities (6)
 
@@ -545,8 +559,8 @@ KB Domains:          ->    Read patterns:       ->    Agents consult:
 | Dimension | Without AgentSpec | With AgentSpec |
 |-----------|-------------------|----------------|
 | File placement | Random/guessed | Explicit in Technical Context |
-| Pattern consistency | Varies | KB-grounded (23 domains) |
-| Code ownership | Unclear | Agent attribution (58 agents) |
+| Pattern consistency | Varies | KB-grounded (18 domains) |
+| Code ownership | Unclear | Agent attribution (42 agents) |
 | Traceability | None | Full artifact chain |
 | Specialist expertise | None | Automatic matching |
 | Data lineage | Manual | Captured in Define phase |
@@ -755,8 +769,8 @@ SCHEMA GOVERNANCE
 | Workflow Contracts | `.claude/sdd/architecture/WORKFLOW_CONTRACTS.yaml` |
 | Templates | `.claude/sdd/templates/` |
 | Archive | `.claude/sdd/archive/` |
-| Agents (58) | `.claude/agents/` |
-| Knowledge Base (23) | `.claude/kb/` |
+| Agents (42) | `.claude/agents/` |
+| Knowledge Base (18) | `.claude/kb/` |
 | SDD Commands | `.claude/commands/workflow/` |
 | DE Commands | `.claude/commands/data-engineering/` |
 | Core Commands | `.claude/commands/core/` |
@@ -767,6 +781,7 @@ SCHEMA GOVERNANCE
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 3.0.0 | 2026-04-14 | Curated data engineering distribution: 42 agents across 7 categories, 18 KB domains, 29 commands |
 | 2.1.0 | 2026-03-26 | Multi-cloud coverage: 58 agents across 8 categories, 23 KB domains |
 | 2.0.0 | 2026-03-26 | Data engineering pivot: 11 KB domains, 11 DE agents, 8 DE commands |
 | 1.0.0 | 2026-02-17 | Public release as AgentSpec v1.0.0 with 16 agents |
@@ -792,11 +807,11 @@ AgentSpec is designed for a future where:
 |   "Tell me WHAT to build, I'll figure out WHO should         |
 |    build it -- with the right data engineering patterns."    |
 |                                                               |
-|                         -- AgentSpec v2.1                     |
+|                         -- AgentSpec v3.0                     |
 |                                                               |
 +-------------------------------------------------------------+
 ```
 
 ---
 
-*Document Updated: 2026-03-26 | AgentSpec v2.1.0*
+*Document Updated: 2026-08-02 | AgentSpec v3.0.0*
