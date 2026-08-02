@@ -1,0 +1,42 @@
+{
+  "name": "agentspec-rdd",
+  "version": "0.1.0",
+  "description": "Installer for the AgentSpec SDD workflow — 5-phase spec-driven development for Claude Code and Codex",
+  "type": "module",
+  "license": "MIT",
+  "author": "ip2cloud",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ip2cloud/agentspec-sdd.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ip2cloud/agentspec-sdd/issues"
+  },
+  "homepage": "https://github.com/ip2cloud/agentspec-sdd#readme",
+  "bin": {
+    "agentspec-rdd": "bin/cli.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "bin",
+    "src",
+    ".claude/sdd",
+    ".claude/commands/workflow",
+    ".claude/agents/workflow",
+    "README.md"
+  ],
+  "scripts": {
+    "prepack": "node scripts/verify-payload.js",
+    "test": "node scripts/verify-payload.js && node scripts/smoke-test.js"
+  },
+  "keywords": [
+    "agentspec",
+    "sdd",
+    "spec-driven-development",
+    "claude-code",
+    "codex",
+    "scaffolding"
+  ]
+}
