@@ -30,7 +30,8 @@
     ".base/commands/review",
     ".base/agents",
     ".base/kb",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "bootstrap": "node bin/cli.js --claude --dir . --force",
