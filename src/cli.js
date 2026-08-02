@@ -133,10 +133,10 @@ async function promptForTarget () {
 async function resolvePayload () {
   const payload = {
     sdd: join(packageRoot, '.claude', 'sdd'),
-    commands: [
-      join(packageRoot, '.claude', 'commands', 'workflow'),
-      join(packageRoot, '.claude', 'commands', 'knowledge')
-    ],
+    // Every command group except visual-explainer, whose commands depend on a
+    // skill this distribution does not carry and would fail when invoked.
+    commands: ['workflow', 'knowledge', 'data-engineering', 'core', 'review']
+      .map((group) => join(packageRoot, '.claude', 'commands', group)),
     agents: join(packageRoot, '.claude', 'agents'),
     kb: join(packageRoot, '.claude', 'kb')
   }

@@ -42,8 +42,14 @@ try {
 
   check('claude: WORKFLOW_CONTRACTS copied',
     await pathExists(join(claudeDir, '.claude/sdd/architecture/WORKFLOW_CONTRACTS.yaml')))
-  check('claude: 7 workflow commands',
-    (await listFiles(join(claudeDir, '.claude/commands/workflow'))).length === 7)
+  check('claude: 21 commands across 5 groups',
+    (await listFiles(join(claudeDir, '.claude/commands'))).length === 21)
+  check('claude: no README shipped as a slash command',
+    !(await listFiles(join(claudeDir, '.claude/commands'))).some((f) => f.endsWith('README.md')))
+  check('claude: visual-explainer commands excluded',
+    !(await pathExists(join(claudeDir, '.claude/commands/visual-explainer'))))
+  check('claude: data engineering commands shipped',
+    await pathExists(join(claudeDir, '.claude/commands/data-engineering/schema.md')))
   check('claude: 6 workflow agents',
     (await listFiles(join(claudeDir, '.claude/agents/workflow'))).length === 6)
   check('claude: all 42 agents across 7 categories',
@@ -73,8 +79,12 @@ try {
   const agentsMd = await readFile(join(codexDir, 'AGENTS.md'), 'utf8')
   const contracts = await readFile(join(codexDir, '.codex/sdd/architecture/WORKFLOW_CONTRACTS.yaml'), 'utf8')
 
-  check('codex: 8 prompts generated (7 phases + create-kb)',
-    (await listFiles(join(codexDir, '.codex/prompts'))).length === 8)
+  check('codex: 21 prompts generated',
+    (await listFiles(join(codexDir, '.codex/prompts'))).length === 21)
+  check('codex: prompt names match the source commands',
+    (await pathExists(join(codexDir, '.codex/prompts/schema.md'))) &&
+    (await pathExists(join(codexDir, '.codex/prompts/sync-context.md'))) &&
+    !(await pathExists(join(codexDir, '.codex/prompts/README.md'))))
   check('codex: 42 skills generated', (await listFiles(join(codexDir, '.codex/skills'))).length === 42)
   check('codex: specialist skill converted',
     await pathExists(join(codexDir, '.codex/skills/dbt-specialist/SKILL.md')))

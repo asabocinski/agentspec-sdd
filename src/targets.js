@@ -33,6 +33,8 @@ const isAgentAsset = (file) =>
 
 const categoryOf = (file) => file.split('/')[0]
 
+const isCommandAsset = (file) => extname(file) === '.md' && basename(file) !== 'README.md'
+
 /**
  * Shared uninstall path. Only files recorded in the manifest are touched, so user
  * work under `sdd/features/` and any agents added by hand survive untouched.
@@ -88,8 +90,10 @@ export async function installClaude (payload, options, report) {
 
   await copyTree(payload.sdd, join(root, 'sdd'), options, report, (content, file) =>
     decorateSddDoc(content, file, '.claude'))
+  // README.md is excluded: anything under commands/ is discovered as a slash
+  // command, so shipping it would surface a bogus /README.
   for (const dir of payload.commands) {
-    await copyTree(dir, join(root, 'commands', basename(dir)), options, report)
+    await copyTree(dir, join(root, 'commands', basename(dir)), options, report, null, isCommandAsset)
   }
 
   await copyTree(payload.agents, join(root, 'agents'), options, report)
@@ -121,7 +125,7 @@ export async function installCodex (payload, options, report) {
   const commands = []
   for (const dir of payload.commands) {
     for (const file of await listFiles(dir)) {
-      if (extname(file) !== '.md' || basename(file) === 'README.md') continue
+      if (!isCommandAsset(file)) continue
       const source = await readText(join(dir, file))
       const prompt = toCodexPrompt(source, basename(file, '.md'))
       const { attrs } = parseAsset(source)
@@ -168,9 +172,10 @@ async function writeAgentsMd (options, report, commands, agents) {
   await writeIfAllowed(target, merged, { ...options, force: true }, report)
 }
 
-async function copyTree (from, to, options, report, transform) {
+async function copyTree (from, to, options, report, transform, filter) {
   for (const file of await listFiles(from)) {
     if (basename(file) === '.gitkeep') continue
+    if (filter && !filter(file)) continue
 
     const source = join(from, file)
     const target = join(to, file)

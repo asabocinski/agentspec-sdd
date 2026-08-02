@@ -25,6 +25,9 @@
     ".claude/sdd",
     ".claude/commands/workflow",
     ".claude/commands/knowledge",
+    ".claude/commands/data-engineering",
+    ".claude/commands/core",
+    ".claude/commands/review",
     ".claude/agents",
     ".claude/kb",
     "README.md"

@@ -161,11 +161,10 @@ export function decorateSddDoc (content, file, targetDir) {
 
   const notice = [
     '> **Installed by `agentspec-rdd`.** This project has the 5-phase workflow',
-    `> (\`${targetDir}/sdd/\`), all 42 agents, all 18 KB domains, and \`/create-kb\`.`,
+    `> (\`${targetDir}/sdd/\`), all 42 agents, and all 18 KB domains.`,
     '>',
-    '> Of the 29 commands documented below, 8 ship: the 7 phase commands plus `/create-kb`.',
-    '> The data engineering, visual explainer, and utility commands are not installed —',
-    '> the agents they would call are, so drive those flows through the phase commands.',
+    '> 21 of the 29 commands documented below ship. The 8 visual explainer commands are',
+    '> excluded: they depend on a skill this distribution does not carry.',
     ''
   ].join('\n')
 

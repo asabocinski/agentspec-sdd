@@ -24,11 +24,25 @@ O workflow de 5 fases, **os 42 agentes** e **os 18 domínios de KB** que eles de
 | Componente | Conteúdo |
 |------------|----------|
 | `sdd/` | Templates, `WORKFLOW_CONTRACTS.yaml`, `ARCHITECTURE.md`, diretórios de trabalho |
-| Comandos de fase | `brainstorm`, `define`, `design`, `build`, `ship`, `iterate`, `create-pr` |
-| `/create-kb` | Cria um domínio de KB novo do zero |
-| Agentes de fase | `brainstorm-agent`, `define-agent`, `design-agent`, `build-agent`, `ship-agent`, `iterate-agent` |
-| Agentes especialistas | 36 agentes de domínio, com as categorias preservadas |
+| 21 comandos | Fases, data engineering, KB, utilidades e review |
+| 42 agentes | 6 de fase + 36 especialistas, com as categorias preservadas |
 | `kb/` | 18 domínios, 222 arquivos, `_index.yaml`, `_templates/` e `shared/` |
+
+Os 21 comandos:
+
+| Grupo | Qtd | Comandos |
+|-------|----:|----------|
+| Fases | 7 | `/brainstorm` `/define` `/design` `/build` `/ship` `/iterate` `/create-pr` |
+| Data engineering | 8 | `/schema` `/pipeline` `/data-quality` `/lakehouse` `/sql-review` `/ai-pipeline` `/data-contract` `/migrate` |
+| Utilidades | 4 | `/meeting` `/memory` `/sync-context` `/readme-maker` |
+| Knowledge | 1 | `/create-kb` |
+| Review | 1 | `/review` |
+
+Os 8 comandos de visual explainer da distribuição completa **não** entram: eles dependem de
+uma skill que não faz parte deste repositório e falhariam ao ser executados.
+
+O `/review` entra, mas o fluxo duplo dele espera o **CodeRabbit CLI** instalado à parte.
+Sem ele, use `/review --deep`, que roda só com o Claude.
 
 Os 42 agentes em 7 categorias:
 
@@ -61,9 +75,12 @@ Os dois assistentes têm formatos diferentes, então a instalação no Codex é 
 .claude/
 ├── .agentspec-rdd.json      manifesto: o que foi instalado (usado na desinstalação)
 ├── sdd/                     templates, contratos, features/, reports/, archive/
-├── commands/
-│   ├── workflow/            7 slash commands de fase
-│   └── knowledge/           /create-kb
+├── commands/                21 slash commands, agrupados
+│   ├── workflow/            7 de fase
+│   ├── data-engineering/    8
+│   ├── core/                4 utilidades
+│   ├── knowledge/           /create-kb
+│   └── review/              /review
 ├── kb/                      18 domínios + _index.yaml + _templates/ + shared/
 └── agents/                  42 subagentes (invocados pela ferramenta Task)
     ├── workflow/            6 agentes de fase
@@ -78,7 +95,7 @@ Os dois assistentes têm formatos diferentes, então a instalação no Codex é 
 .codex/
 ├── .agentspec-rdd.json      manifesto: o que foi instalado (usado na desinstalação)
 ├── sdd/                     mesmos documentos, caminhos reescritos para .codex/
-├── prompts/                 8 slash commands nativos (7 fases + create-kb)
+├── prompts/                 21 slash commands nativos, todos planos
 ├── kb/                      os mesmos 18 domínios, caminhos reescritos
 └── skills/<nome>/SKILL.md   42 skills convertidas dos subagentes
 AGENTS.md                    seção gerenciada apontando para tudo acima
@@ -278,13 +295,9 @@ de status) é o `sdd/architecture/WORKFLOW_CONTRACTS.yaml`. Ele é a fonte da ve
 ## Observação de escopo
 
 O `sdd/README.md` instalado documenta a distribuição **completa** do AgentSpec, com 29
-comandos. Este instalador entrega 8 deles: os 7 de fase mais o `/create-kb`. Os 21 restantes
-— data engineering (`/schema`, `/pipeline`, ...), visual explainer e utilidades — ficam de
-fora. Os agentes que eles chamariam estão todos instalados, então dá para conduzir esses
-fluxos pelos comandos de fase.
-
-Os documentos copiados levam um aviso dizendo isso, para você não ir atrás de um `/schema`
-que não existe no seu projeto.
+comandos. Este instalador entrega 21 — todos menos os 8 de visual explainer. Os documentos
+copiados levam um aviso dizendo isso, para você não ir atrás de um `/generate-slides` que
+não existe no seu projeto.
 
 ---
 
