@@ -160,13 +160,12 @@ export function decorateSddDoc (content, file, targetDir) {
   if (!PROFILE_DOCS.has(file)) return content
 
   const notice = [
-    '> **Installed profile: workflow + agents.** `agentspec-rdd` installed the 5-phase',
-    `> workflow (\`${targetDir}/sdd/\`), the 7 phase commands, and all 42 agents.`,
+    '> **Installed by `agentspec-rdd`.** This project has the 5-phase workflow',
+    `> (\`${targetDir}/sdd/\`), the 7 phase commands, and all 42 agents.`,
     '>',
-    '> The 18 KB domains described below are **not** part of this install. Agent Matching',
-    '> works, but KB-First resolution has nothing local to read: domains named in a DEFINE',
-    '> Technical Context resolve to nothing, and agents fall back to their own knowledge.',
-    `> To close that gap, add the domains under \`${targetDir}/kb/\`.`,
+    '> The 18 KB domains described below are **not** installed. Agent Matching works, but',
+    '> KB-First resolution finds nothing locally, so agents fall back to their own knowledge',
+    `> instead of curated patterns. Build the domains your project needs under \`${targetDir}/kb/\`.`,
     ''
   ].join('\n')
 
@@ -246,6 +245,22 @@ export function buildAgentsSection (commands, agents) {
     '| Category | Count | Skills |',
     '|----------|------:|--------|',
     specialistRows,
+    '',
+    '### Knowledge base (not installed)',
+    '',
+    'Every skill declares the KB domains it reads (`kb_domains:` in its frontmatter) and follows',
+    '**KB-First resolution**: read the local domain before reaching for anything external.',
+    '',
+    '```text',
+    '1. Read .codex/kb/{domain}/index.md      scan headings only',
+    '2. Read the one pattern or concept file that matches the task',
+    '3. Only then fall back to outside knowledge',
+    '```',
+    '',
+    'This install ships no `.codex/kb/`, so step 1 finds nothing and the skills answer from',
+    'their own knowledge. Adding a domain is what turns a skill from generally competent into',
+    "one that follows your project's agreed patterns. Create `.codex/kb/{domain}/index.md` plus",
+    '`concepts/` and `patterns/`, then name that domain in a DEFINE Technical Context.',
     '',
     '### Where artifacts live',
     '',

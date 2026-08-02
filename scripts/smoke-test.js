@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile, mkdir } from 'node:fs/promises'
+import { mkdtemp, readFile, readdir, rm, writeFile, mkdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { listFiles, pathExists } from '../src/util.js'
@@ -29,6 +29,7 @@ try {
     await pathExists(join(claudeDir, '.claude/agents/data-engineering/dbt-specialist.md')))
   check('claude: working dirs created',
     await pathExists(join(claudeDir, '.claude/sdd/features')))
+  check('claude: KB is not shipped', !(await pathExists(join(claudeDir, '.claude/kb'))))
 
   const codexDir = join(sandbox, 'codex-project')
   await mkdir(codexDir, { recursive: true })
@@ -55,6 +56,18 @@ try {
   check('codex: skill keeps origin metadata', skill.includes('| **Tier** |'))
   check('codex: paths rewritten in prompts', !define.includes('.claude/'))
   check('codex: paths rewritten in sdd', !contracts.includes('.claude/'))
+  check('codex: KB is not shipped', !(await pathExists(join(codexDir, '.codex/kb'))))
+  check('codex: AGENTS.md explains the missing KB',
+    agentsMd.includes('Knowledge base (not installed)') && agentsMd.includes('KB-First resolution'))
+
+  // Scans the whole tree rather than sampled files: a file type missing from
+  // isTextAsset would otherwise ship with unrewritten .claude/ paths.
+  const leaks = []
+  for (const file of await listFiles(join(codexDir, '.codex'))) {
+    const content = await readFile(join(codexDir, '.codex', file), 'utf8')
+    if (content.includes('.claude/')) leaks.push(file)
+  }
+  check(`codex: no .claude/ paths anywhere in .codex (${leaks.join(', ') || 'clean'})`, leaks.length === 0)
   check('codex: AGENTS.md preserves user content', agentsMd.includes('Hand-written rules.'))
   check('codex: AGENTS.md has managed block', agentsMd.includes('<!-- agentspec-rdd:start -->'))
   check('codex: AGENTS.md lists specialist categories',

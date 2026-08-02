@@ -19,7 +19,9 @@ npx agentspec-rdd --claude
 
 ## O que ele instala
 
-O workflow de 5 fases e **os 42 agentes**. Sem os domínios de KB.
+O workflow de 5 fases e **os 42 agentes**. O knowledge base **não** vem junto — ele é
+específico do seu projeto, e a seção [Knowledge Base](#knowledge-base) explica por que isso
+importa e como criar o seu.
 
 | Componente | Conteúdo |
 |------------|----------|
@@ -118,6 +120,154 @@ O resumo sempre informa quantos arquivos foram criados, atualizados e pulados.
 
 ---
 
+## Knowledge Base
+
+O KB **não vem no instalador**, e isso é proposital: os padrões que importam são os do
+**seu** projeto, não os de outro. Mas os agentes foram construídos esperando que ele exista.
+Vale entender o que muda com e sem ele.
+
+### Por que importa
+
+Todo agente declara no frontmatter quais domínios lê:
+
+```yaml
+kb_domains: [dbt, data-quality, sql-patterns]
+```
+
+E segue **resolução KB-First** — consultar o conhecimento local antes de qualquer fonte
+externa. A ordem é fixa:
+
+```text
+1. Ler kb/{dominio}/index.md          só os títulos, ~20 linhas
+2. Ler o arquivo de pattern ou concept que casa com a tarefa   um só, não todos
+3. Só então recorrer a MCP ou ao conhecimento próprio do modelo
+```
+
+Sem KB, o passo 1 não acha nada e o agente responde com o que ele acha que sabe. Com KB, ele
+responde com o padrão que **a sua equipe decidiu**. A diferença na prática:
+
+| | Sem KB | Com KB |
+|---|---|---|
+| Estratégia de modelo incremental | O que o modelo lembra de dbt | A sua, com a chave e o `merge` que vocês usam |
+| Convenção de nomes | Inventada por analogia | A do seu `naming.md` |
+| Consistência entre execuções | Varia | Igual, porque a fonte é um arquivo |
+| Revisão | Discute-se o código | Discute-se o pattern, e o código segue |
+
+O KB é onde uma decisão tomada uma vez para de ser reexplicada a cada tarefa.
+
+### Estrutura de um domínio
+
+```text
+kb/{dominio}/
+├── index.md              visão geral e navegação — o agente lê isto primeiro
+├── quick-reference.md    tabelas de consulta rápida        (até 100 linhas)
+├── concepts/             o que é e por quê     3-6 arquivos (até 150 linhas cada)
+│   ├── incremental-strategies.md
+│   └── testing-framework.md
+└── patterns/             como fazer, copiável  3-6 arquivos (até 200 linhas cada)
+    ├── incremental-model.md
+    └── snapshot-scd2.md
+```
+
+Os limites de tamanho não são estética: agente que precisa ler 600 linhas para achar uma
+resposta vai parar de ler. **Concept** explica o porquê e o trade-off; **pattern** entrega
+código pronto para copiar. Se um arquivo estoura o limite, ele quer virar dois.
+
+### Criando um domínio
+
+**1. Crie a estrutura**
+
+```bash
+mkdir -p .claude/kb/meu-dominio/{concepts,patterns}
+touch .claude/kb/meu-dominio/{index.md,quick-reference.md}
+```
+
+**2. Escreva o `index.md`** — é o único arquivo que o agente lê inteiro, toda vez. Ele é um
+mapa, não conteúdo:
+
+```markdown
+# Meu Domínio
+
+> Uma linha dizendo o que este domínio cobre.
+
+## Conceitos
+| Arquivo | Cobre |
+|---------|-------|
+| `concepts/particionamento.md` | Como escolher chave de partição |
+
+## Patterns
+| Arquivo | Resolve |
+|---------|---------|
+| `patterns/carga-incremental.md` | Carga incremental com late-arriving data |
+```
+
+**3. Escreva um pattern de verdade.** O teste é: dá para copiar e usar sem editar?
+
+```markdown
+# Carga Incremental
+
+> Quando a tabela é grande demais para full refresh e chegam fatos atrasados.
+
+## Quando usar
+- Volume acima de ~10M linhas
+- Existe coluna de atualização confiável
+
+## Implementação
+\`\`\`sql
+-- código completo, com os nomes e tipos que vocês realmente usam
+\`\`\`
+
+## Armadilhas
+| Erro | Consequência | Em vez disso |
+|------|--------------|--------------|
+| Filtrar por `created_at` | Perde registro atualizado | Filtrar por `updated_at` |
+```
+
+**4. Registre em `.claude/kb/_index.yaml`** — é assim que o domínio passa a ser descoberto:
+
+```yaml
+domains:
+  meu-dominio:
+    name: meu-dominio
+    description: "Uma linha — é isso que o agente lê ao decidir se o domínio é relevante"
+    path: meu-dominio/
+    entry_points:
+      index: index.md
+      quick_reference: quick-reference.md
+```
+
+**5. Conecte ao agente**, adicionando o domínio ao `kb_domains` de quem deve lê-lo:
+
+```yaml
+kb_domains: [meu-dominio, data-quality]
+```
+
+**6. Use no workflow**, citando o domínio no Technical Context de um DEFINE:
+
+```markdown
+| **KB Domains** | meu-dominio, sql-patterns |
+```
+
+A partir daí o DESIGN puxa os patterns desses domínios e o BUILD os consulta ao escrever
+cada arquivo.
+
+### Por onde começar
+
+Não tente cobrir um domínio inteiro de saída. O caminho que funciona é o inverso: na próxima
+vez que você corrigir a mesma coisa pela segunda vez numa revisão, **isso** é um pattern.
+Escreva o arquivo, registre o domínio, e a terceira vez não acontece.
+
+Um domínio com três patterns que vocês de fato seguem vale mais que dezoito domínios
+copiados de outro projeto.
+
+> A distribuição completa do AgentSpec traz 18 domínios prontos (dbt, spark, airflow,
+> sql-patterns, data-modeling, data-quality, lakehouse, medallion, lakeflow, cloud-platforms,
+> terraform, supabase, ai-data-engineering, prompt-engineering, genai, pydantic, python,
+> testing) e o comando `/create-kb`, que faz os passos 1 a 4 sozinho. Nenhum dos dois vem
+> neste instalador.
+
+---
+
 ## Desinstalação
 
 ```bash
@@ -194,20 +344,14 @@ de status) é o `sdd/architecture/WORKFLOW_CONTRACTS.yaml`. Ele é a fonte da ve
 
 ---
 
-## Observação de escopo: o KB não vem junto
+## Observação de escopo
 
-Os 42 agentes vêm completos, mas os **18 domínios de knowledge base não**. Isso tem
-consequência prática: os agentes declaram no frontmatter quais domínios eles leem
-(`kb_domains: [dbt, data-quality, sql-patterns]`) e seguem uma resolução KB-First — checar
-o conhecimento local antes de qualquer fonte externa.
+O `sdd/README.md` instalado documenta a distribuição **completa** do AgentSpec: 29 comandos
+e 18 domínios de KB. Este instalador entrega os 42 agentes e os 7 comandos de fase — os
+outros 22 comandos e o KB ficam de fora. Os documentos copiados levam um aviso dizendo isso,
+para você não ir atrás de um `/schema` que não foi instalado.
 
-Sem o KB instalado, esse primeiro passo não encontra nada. O Agent Matching funciona (o
-DESIGN atribui o especialista certo a cada arquivo), mas cada agente cai no próprio
-conhecimento em vez de nos padrões curados, e os domínios citados no Technical Context de
-um DEFINE não resolvem para nada.
-
-Os documentos copiados levam um aviso dizendo isso. Para fechar a lacuna, adicione os
-domínios em `.claude/kb/` (ou `.codex/kb/`).
+Sobre o KB, veja [Knowledge Base](#knowledge-base): ele é de propósito seu, não nosso.
 
 ---
 

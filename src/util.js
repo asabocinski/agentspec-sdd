@@ -87,4 +87,4 @@ export function rewriteForCodex (text) {
   )
 }
 
-export const isTextAsset = (path) => /\.(md|ya?ml|json|txt)$/i.test(path)
+export const isTextAsset = (path) => /\.(md|ya?ml|json|txt|template)$/i.test(path)
