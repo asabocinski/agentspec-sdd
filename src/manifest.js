@@ -12,17 +12,10 @@ const hash = (content) => createHash('sha256').update(content).digest('hex').sli
  * hash to tell an untouched file (safe to delete) from one the user edited.
  */
 export async function writeManifest (root, target, version, report, options) {
-  // Files carrying a managed block are shared with the user: they are edited in
-  // place on install and stripped on uninstall, never owned outright.
-  const managedBlocks = target === 'codex' ? ['AGENTS.md'] : []
-  const owned = (path) => !managedBlocks.includes(path)
-
   const previous = await readManifest(root)
-  const merged = new Map(
-    (previous?.files ?? []).filter((entry) => owned(entry.path)).map((entry) => [entry.path, entry])
-  )
+  const merged = new Map((previous?.files ?? []).map((entry) => [entry.path, entry]))
 
-  for (const path of [...new Set([...report.created, ...report.updated])].filter(owned)) {
+  for (const path of [...new Set([...report.created, ...report.updated])]) {
     const absolute = join(options.dir, path)
     if (!(await pathExists(absolute))) continue
     merged.set(path, { path, sha256: hash(await readFile(absolute)) })
@@ -33,8 +26,7 @@ export async function writeManifest (root, target, version, report, options) {
     version,
     target,
     installedAt: new Date().toISOString(),
-    files: [...merged.values()].sort((a, b) => a.path.localeCompare(b.path)),
-    managedBlocks
+    files: [...merged.values()].sort((a, b) => a.path.localeCompare(b.path))
   }
 
   if (!options.dryRun) {

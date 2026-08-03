@@ -4,15 +4,17 @@
 
 ```bash
 npx github:ip2cloud/agentspec-sdd --claude    # -> .claude/
-npx github:ip2cloud/agentspec-sdd --codex     # -> .codex/ + AGENTS.md
+npx github:ip2cloud/agentspec-sdd --codex     # -> .codex/
 ```
 
 Rodando sem alvo, ele pergunta qual assistente o projeto usa.
 
-Depois que o pacote for publicado no npm, a forma curta funciona de qualquer lugar:
+Publicado no npm — a forma curta funciona de qualquer lugar:
 
 ```bash
 npx agentspec-rdd --claude
+npx agentspec-rdd --codex
+npx agentspec-rdd --both
 ```
 
 ---
@@ -77,7 +79,7 @@ assistente. Instalar é resolver essa base para o formato do alvo:
           ▼                       ▼
       --claude                --codex
           │                       │
-      .claude/                .codex/  + AGENTS.md
+      .claude/                .codex/
 ```
 
 Dentro do `.base/`, os documentos se referem a si mesmos como `.base/sdd/features/...`.
@@ -115,12 +117,14 @@ não uma cópia.
 ├── sdd/                     mesmos documentos, caminhos reescritos para .codex/
 ├── prompts/                 21 slash commands nativos, todos planos
 ├── kb/                      os mesmos 18 domínios, caminhos reescritos
-└── skills/<nome>/SKILL.md   42 skills convertidas dos subagentes
-AGENTS.md                    seção gerenciada apontando para tudo acima
+├── skills/<nome>/SKILL.md   42 skills convertidas dos subagentes
+└── AGENTS.md                descrição do workflow, para o Codex ler
 ```
 
+Nada é criado fora de `.codex/`.
+
 No Codex as skills ficam todas planas em `.codex/skills/`, porque é assim que o Codex as
-descobre. A categoria de origem não se perde: o `AGENTS.md` gerado agrupa os especialistas
+descobre. A categoria de origem não se perde: o `.codex/AGENTS.md` agrupa os especialistas
 por categoria numa tabela.
 
 Regras de conversão:
@@ -130,12 +134,39 @@ Regras de conversão:
 | `commands/workflow/define.md` | `prompts/define.md` | O Codex tira o nome do slash do nome do arquivo |
 | `agents/workflow/define-agent.md` | `skills/define-agent/SKILL.md` | `tier`, `model` e `tools` viram tabela visível em vez de serem descartados |
 | `.base/agents/...` | `.codex/skills/...` | Reescrito em todos os documentos copiados |
-| `.base/CLAUDE.md` | `AGENTS.md` | Cada alvo tem o seu arquivo de instruções de projeto |
+| `.base/CLAUDE.md` | `.codex/AGENTS.md` | Cada alvo tem o seu arquivo de instruções |
 | Delegação via ferramenta Task | Instrução inline | O Codex não tem Task; cada skill orienta a seguir as instruções inline |
 
-**O `AGENTS.md` nunca é sobrescrito.** O conteúdo gerado fica entre os marcadores
-`<!-- agentspec-rdd:start -->` e `<!-- agentspec-rdd:end -->`; tudo que você escrever
-fora deles sobrevive às reexecuções, e rodar de novo apenas atualiza o bloco gerenciado.
+---
+
+## Nada é escrito na raiz do seu projeto
+
+O instalador escreve **exclusivamente** dentro de `.claude/` e `.codex/`. Ele **não cria e
+não modifica** o `CLAUDE.md` nem o `AGENTS.md` do seu projeto — esses arquivos são seus, e
+já costumam existir com as regras do time.
+
+| Arquivo | O que o instalador faz |
+|---------|------------------------|
+| `CLAUDE.md` na raiz | Nada. Nunca é lido nem escrito |
+| `AGENTS.md` na raiz | Nada. Nunca é lido nem escrito |
+| `.codex/AGENTS.md` | Criado por nós, dentro da nossa pasta |
+
+Há teste automatizado comparando o **hash** dos dois arquivos antes e depois da instalação.
+
+### Conectando o Codex ao workflow
+
+Como o instalador não toca no seu `AGENTS.md`, o Codex não descobre o workflow sozinho —
+ele lê o `AGENTS.md` da raiz, não o nosso. Se quiser que ele enxergue, **você** adiciona
+uma linha ao seu arquivo:
+
+```markdown
+See .codex/AGENTS.md for the AgentSpec SDD workflow.
+```
+
+O instalador lembra disso no fim da execução. É a única ação manual, e é deliberada: a
+alternativa seria escrever num arquivo que pertence ao seu projeto.
+
+No Claude Code isso não é necessário — ele varre `.claude/` sozinho.
 
 ---
 
@@ -267,9 +298,9 @@ Diretório com qualquer coisa dentro sobrevive — junto com todos os pais dele.
   nascem do seu uso, não da instalação, então nunca entram no manifesto.
 - **Agentes que você adicionou** por conta própria em `agents/<categoria>/`.
 - **Arquivos que você editou**, a menos que passe `--force`.
-- **O `AGENTS.md`**: só o bloco entre os marcadores `agentspec-rdd` é retirado. O que você
-  escreveu fora dele permanece. Se o arquivo ficar sem nada além do bloco, aí sim ele é
-  removido inteiro.
+- **O `AGENTS.md` e o `CLAUDE.md` da raiz**: nunca são tocados, nem na instalação nem na
+  desinstalação. Se você adicionou a linha apontando para `.codex/AGENTS.md`, ela continua
+  lá depois de desinstalar — remova à mão se quiser.
 
 Exemplo real de saída, num projeto com um DEFINE em andamento e um agente editado:
 

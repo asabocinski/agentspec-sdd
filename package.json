@@ -1,6 +1,6 @@
 {
   "name": "agentspec-rdd",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Installer for the AgentSpec SDD workflow — 5-phase spec-driven development for Claude Code and Codex",
   "type": "module",
   "license": "MIT",

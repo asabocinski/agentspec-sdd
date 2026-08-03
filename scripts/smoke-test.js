@@ -80,14 +80,33 @@ try {
     (await pathExists(join(claudeDir, '.claude/kb/_templates/concept.md.template'))) &&
     (await pathExists(join(claudeDir, '.claude/agents/architect/kb-architect.md'))))
 
+  const rootClaudeMd = join(claudeDir, 'CLAUDE.md')
+  check('claude: no CLAUDE.md created at the project root', !(await pathExists(rootClaudeMd)))
+  check('claude: no AGENTS.md created at the project root',
+    !(await pathExists(join(claudeDir, 'AGENTS.md'))))
+
   const codexDir = join(sandbox, 'codex-project')
   await mkdir(codexDir, { recursive: true })
-  await writeFile(join(codexDir, 'AGENTS.md'), '# My project\n\nHand-written rules.\n')
+
+  // Both project-level instruction files exist beforehand and must come out byte
+  // for byte identical: the installer owns nothing outside .claude/ and .codex/.
+  const ownAgents = '# My project\n\nHand-written rules.\n'
+  const ownClaude = '# CLAUDE.md\n\nMy own project memory.\n'
+  await writeFile(join(codexDir, 'AGENTS.md'), ownAgents)
+  await writeFile(join(codexDir, 'CLAUDE.md'), ownClaude)
+
   await main(['--codex', '--dir', codexDir])
+
+  check('codex: project AGENTS.md untouched',
+    (await readFile(join(codexDir, 'AGENTS.md'), 'utf8')) === ownAgents)
+  check('codex: project CLAUDE.md untouched',
+    (await readFile(join(codexDir, 'CLAUDE.md'), 'utf8')) === ownClaude)
+  check('codex: workflow doc written inside .codex/',
+    await pathExists(join(codexDir, '.codex/AGENTS.md')))
 
   const define = await readFile(join(codexDir, '.codex/prompts/define.md'), 'utf8')
   const skill = await readFile(join(codexDir, '.codex/skills/define-agent/SKILL.md'), 'utf8')
-  const agentsMd = await readFile(join(codexDir, 'AGENTS.md'), 'utf8')
+  const agentsMd = await readFile(join(codexDir, '.codex/AGENTS.md'), 'utf8')
   const contracts = await readFile(join(codexDir, '.codex/sdd/architecture/WORKFLOW_CONTRACTS.yaml'), 'utf8')
 
   check('codex: 21 prompts generated',
@@ -126,15 +145,14 @@ try {
     claudeLeaks.length === 0)
   check(`codex: no .base/ or .claude/ paths (${codexLeaks.join(', ') || 'clean'})`,
     codexLeaks.length === 0)
-  check('codex: AGENTS.md preserves user content', agentsMd.includes('Hand-written rules.'))
-  check('codex: AGENTS.md has managed block', agentsMd.includes('<!-- agentspec-rdd:start -->'))
+  check('codex: workflow doc says it is self-contained',
+    agentsMd.includes('nothing outside `.codex/` was created or modified'))
   check('codex: AGENTS.md lists specialist categories',
     agentsMd.includes('**data-engineering**') && agentsMd.includes('### Specialist skills'))
 
   await main(['--codex', '--dir', codexDir])
-  const rerun = await readFile(join(codexDir, 'AGENTS.md'), 'utf8')
-  check('codex: AGENTS.md merge is idempotent',
-    rerun === agentsMd && rerun.split('<!-- agentspec-rdd:start -->').length === 2)
+  check('codex: re-running still leaves the project AGENTS.md alone',
+    (await readFile(join(codexDir, 'AGENTS.md'), 'utf8')) === ownAgents)
 
   const dryDir = join(sandbox, 'dry-project')
   await mkdir(dryDir, { recursive: true })
@@ -178,14 +196,14 @@ try {
 
   const keepMd = join(sandbox, 'agentsmd-project')
   await mkdir(keepMd, { recursive: true })
-  await writeFile(join(keepMd, 'AGENTS.md'), '# Meu projeto\n\nRegras minhas.\n')
+  const untouched = '# Meu projeto\n\nRegras minhas.\n'
+  await writeFile(join(keepMd, 'AGENTS.md'), untouched)
   await main(['--codex', '--dir', keepMd])
   await main(['--uninstall', '--codex', '--dir', keepMd])
 
-  const survivor = await readFile(join(keepMd, 'AGENTS.md'), 'utf8')
-  check('uninstall: AGENTS.md user content survives', survivor.includes('Regras minhas.'))
-  check('uninstall: managed block stripped', !survivor.includes('agentspec-rdd:start'))
-  check('uninstall: .codex removed', !(await pathExists(join(keepMd, '.codex'))))
+  check('uninstall: project AGENTS.md is byte-for-byte unchanged',
+    (await readFile(join(keepMd, 'AGENTS.md'), 'utf8')) === untouched)
+  check('uninstall: .codex removed entirely', !(await pathExists(join(keepMd, '.codex'))))
 
   const orphan = join(sandbox, 'orphan-project')
   await mkdir(orphan, { recursive: true })

@@ -165,6 +165,10 @@ function summarise (targetLabel, result, report, options) {
   }
 
   console.log(`    ${style.dim(result.note)}`)
+
+  if (result.hint) {
+    console.log(`    ${style.yellow(result.hint)}`)
+  }
 }
 
 function summariseUninstall (targetLabel, result, options) {

@@ -11,11 +11,9 @@ import {
   writeIfAllowed
 } from './util.js'
 import {
-  buildAgentsSection,
+  buildAgentsDoc,
   decorateSddDoc,
-  mergeAgentsMd,
   parseAsset,
-  stripAgentsSection,
   toCodexPrompt,
   toCodexSkill
 } from './convert.js'
@@ -53,29 +51,11 @@ async function uninstall (targetKey, label, options) {
 
   const outcome = await removeRecordedFiles(manifest, options)
 
-  for (const file of manifest.managedBlocks ?? []) {
-    await stripManagedBlock(join(options.dir, file), options, outcome)
-  }
-
   if (!options.dryRun) await rm(join(root, MANIFEST_NAME), { force: true })
 
   const pruned = await pruneEmptyDirs(root, options)
 
   return { root, outcome, pruned }
-}
-
-async function stripManagedBlock (path, options, outcome) {
-  if (!(await pathExists(path))) return
-
-  const stripped = stripAgentsSection(await readText(path))
-  if (stripped === null) return
-
-  if (!options.dryRun) {
-    if (stripped === '') await rm(path, { force: true })
-    else await writeFile(path, stripped, 'utf8')
-  }
-
-  outcome.removed.push(stripped === '' ? 'AGENTS.md' : 'AGENTS.md (managed block only)')
 }
 
 export const uninstallClaude = (options) => uninstall('claude', 'Claude Code', options)
@@ -145,31 +125,21 @@ export async function installCodex (payload, options, report) {
     await writeIfAllowed(join(root, 'skills', skill.name, 'SKILL.md'), skill.content, options, report)
   }
 
-  await writeAgentsMd(options, report, commands, agents)
+  // Written inside .codex/, never at the project root: the root AGENTS.md belongs
+  // to the project and this installer must not create or modify it.
+  await writeIfAllowed(
+    join(root, 'AGENTS.md'),
+    buildAgentsDoc(commands, agents),
+    options,
+    report
+  )
 
-  return { root, note: 'Prompts are available as slash commands; start with /define.' }
-}
-
-/**
- * AGENTS.md is the one file that is always merged rather than skipped: it is the
- * entry point Codex reads, and the managed block is delimited so hand-written
- * content around it survives re-runs.
- */
-async function writeAgentsMd (options, report, commands, agents) {
-  const target = join(options.dir, 'AGENTS.md')
-  const existing = (await pathExists(target)) ? await readText(target) : ''
-  const merged = mergeAgentsMd(existing, buildAgentsSection(commands, agents))
-
-  if (existing === merged) {
-    report.skipped.push('AGENTS.md')
-    return
+  return {
+    root,
+    note: 'Prompts are available as slash commands; start with /define.',
+    hint: 'To let Codex find the workflow, add one line to your own AGENTS.md:\n' +
+      '      See .codex/AGENTS.md for the AgentSpec SDD workflow.'
   }
-
-  if (!options.dryRun) {
-    await mkdir(options.dir, { recursive: true })
-  }
-
-  await writeIfAllowed(target, merged, { ...options, force: true }, report)
 }
 
 async function copyTree (from, to, options, report, transform, filter) {

@@ -82,7 +82,7 @@ const PATH_REWRITES = {
     ['.base/commands/', '.codex/prompts/'],
     ['.base/agents/workflow/', '.codex/skills/'],
     ['.base/agents/', '.codex/skills/'],
-    ['.base/CLAUDE.md', 'AGENTS.md'],
+    ['.base/CLAUDE.md', '.codex/AGENTS.md'],
     ['.base/', '.codex/']
   ]
 }
