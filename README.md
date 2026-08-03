@@ -44,7 +44,11 @@ Os 8 comandos de visual explainer da distribuição completa **não** entram: el
 uma skill que não faz parte deste repositório e falhariam ao ser executados.
 
 O `/review` entra, mas o fluxo duplo dele espera o **CodeRabbit CLI** instalado à parte.
-Sem ele, use `/review --deep`, que roda só com o Claude.
+Sem ele, use a variante `--deep`, que roda só com o Claude.
+
+> Os nomes acima são os do Codex. No Claude Code cada comando é prefixado pelo grupo —
+> `/workflow:define`, `/data-engineering:schema`. Veja
+> [Como chamar as fases em cada assistente](#como-chamar-as-fases-em-cada-assistente).
 
 Os 42 agentes em 7 categorias:
 
@@ -136,6 +140,50 @@ Regras de conversão:
 | `.base/agents/...` | `.codex/skills/...` | Reescrito em todos os documentos copiados |
 | `.base/CLAUDE.md` | `.codex/AGENTS.md` | Cada alvo tem o seu arquivo de instruções |
 | Delegação via ferramenta Task | Instrução inline | O Codex não tem Task; cada skill orienta a seguir as instruções inline |
+
+---
+
+## Como chamar as fases em cada assistente
+
+**Os nomes dos comandos não são os mesmos nos dois alvos.** O Claude Code prefixa com a
+subpasta; o Codex usa só o nome do arquivo, porque lá os prompts ficam todos planos.
+
+| Fase | Claude Code | Codex |
+|------|-------------|-------|
+| 0 · Brainstorm | `/workflow:brainstorm` | `/brainstorm` |
+| 1 · Define | `/workflow:define` | `/define` |
+| 2 · Design | `/workflow:design` | `/design` |
+| 3 · Build | `/workflow:build` | `/build` |
+| 4 · Ship | `/workflow:ship` | `/ship` |
+| ↻ Iterate | `/workflow:iterate` | `/iterate` |
+| — Pull request | `/workflow:create-pr` | `/create-pr` |
+
+O mesmo vale para os outros 14 comandos:
+
+| Grupo | Claude Code | Codex |
+|-------|-------------|-------|
+| Data engineering | `/data-engineering:schema`<br>`/data-engineering:pipeline`<br>`/data-engineering:data-quality`<br>`/data-engineering:lakehouse`<br>`/data-engineering:sql-review`<br>`/data-engineering:ai-pipeline`<br>`/data-engineering:data-contract`<br>`/data-engineering:migrate` | `/schema`<br>`/pipeline`<br>`/data-quality`<br>`/lakehouse`<br>`/sql-review`<br>`/ai-pipeline`<br>`/data-contract`<br>`/migrate` |
+| Utilidades | `/core:meeting`<br>`/core:memory`<br>`/core:sync-context`<br>`/core:readme-maker` | `/meeting`<br>`/memory`<br>`/sync-context`<br>`/readme-maker` |
+| Knowledge | `/knowledge:create-kb` | `/create-kb` |
+| Review | `/review:review` | `/review` |
+
+### Por que muda
+
+É consequência de como cada assistente descobre os comandos:
+
+```text
+CLAUDE CODE                              CODEX
+.claude/commands/workflow/define.md      .codex/prompts/define.md
+                 └──────┬─────┘ └──┬─┘                    └──┬─┘
+                    namespace     nome                      nome
+                        ↓          ↓                          ↓
+                 /workflow:define                        /define
+```
+
+O Claude Code varre `commands/**` e usa o **caminho** para nomear, evitando colisão entre
+grupos. O Codex lê apenas `prompts/*.md`, sem subpastas, e tira o nome do **arquivo**.
+
+Nas duas plataformas o comportamento e os argumentos são idênticos — só o nome muda.
 
 ---
 
@@ -241,6 +289,8 @@ o passo 1 do KB-First sem resposta.
 /create-kb "iceberg"
 ```
 
+No Claude Code o mesmo comando é `/knowledge:create-kb "iceberg"`.
+
 O comando cria a estrutura, escreve `index.md` e `quick-reference.md`, gera concepts e
 patterns a partir dos templates em `kb/_templates/`, valida contra MCP e registra o domínio
 em `kb/_index.yaml`. Depois é só citá-lo onde interessa:
@@ -326,16 +376,32 @@ do que foi instalado, apagar por conta própria arriscaria levar junto o seu tra
 
 ## Depois de instalar
 
+**No Claude Code:**
+
+```bash
+/workflow:brainstorm "pipeline incremental de pedidos com SCD Tipo 2"   # opcional, Fase 0
+/workflow:define <doc de brainstorm, anotações ou descrição direta>     # Fase 1, gate: Clarity Score >= 12/15
+/workflow:design <doc DEFINE>                                           # Fase 2, produz o manifesto de arquivos
+/workflow:build <doc DESIGN>                                            # Fase 3, produz código + BUILD_REPORT
+/workflow:ship <doc DEFINE>                                             # Fase 4, arquiva com lições aprendidas
+```
+
+**No Codex:**
+
 ```bash
 /brainstorm "pipeline incremental de pedidos com SCD Tipo 2"   # opcional, Fase 0
-/define <doc de brainstorm, anotações ou uma descrição direta> # Fase 1, gate: Clarity Score >= 12/15
+/define <doc de brainstorm, anotações ou descrição direta>     # Fase 1, gate: Clarity Score >= 12/15
 /design <doc DEFINE>                                           # Fase 2, produz o manifesto de arquivos
 /build <doc DESIGN>                                            # Fase 3, produz código + BUILD_REPORT
 /ship <doc DEFINE>                                             # Fase 4, arquiva com lições aprendidas
 ```
 
-Mudanças no meio do caminho passam pelo `/iterate`, que atualiza o documento da fase e
-sinaliza o que cascateia para as fases seguintes — não editando o código direto.
+Mudanças no meio do caminho passam pelo `/workflow:iterate` (Codex: `/iterate`), que atualiza
+o documento da fase e sinaliza o que cascateia para as fases seguintes — não editando o
+código direto.
+
+> Depois de instalar, **reinicie a sessão do assistente**. Comandos e agentes são carregados
+> na abertura; sem reiniciar, eles não aparecem.
 
 O contrato legível por máquina de cada fase (seções obrigatórias, quality gates, transições
 de status) é o `sdd/architecture/WORKFLOW_CONTRACTS.yaml`. Ele é a fonte da verdade.
