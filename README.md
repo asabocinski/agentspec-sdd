@@ -1,4 +1,4 @@
-# agentspec-rdd
+# agentspec-sdd
 
 > Instala o **workflow SDD do AgentSpec** — desenvolvimento orientado a especificação em 5 fases — em um projeto, para **Claude Code** ou **Codex**.
 
