@@ -12,9 +12,9 @@ Rodando sem alvo, ele pergunta qual assistente o projeto usa.
 Publicado no npm — a forma curta funciona de qualquer lugar:
 
 ```bash
-npx agentspec-rdd --claude
-npx agentspec-rdd --codex
-npx agentspec-rdd --both
+npx agentspec-sdd --claude
+npx agentspec-sdd --codex
+npx agentspec-sdd --both
 ```
 
 ---
@@ -97,7 +97,7 @@ não uma cópia.
 
 ```text
 .claude/
-├── .agentspec-rdd.json      manifesto: o que foi instalado (usado na desinstalação)
+├── .agentspec-sdd.json      manifesto: o que foi instalado (usado na desinstalação)
 ├── sdd/                     templates, contratos, features/, reports/, archive/
 ├── commands/                21 slash commands, agrupados
 │   ├── workflow/            7 de fase
@@ -117,7 +117,7 @@ não uma cópia.
 
 ```text
 .codex/
-├── .agentspec-rdd.json      manifesto: o que foi instalado (usado na desinstalação)
+├── .agentspec-sdd.json      manifesto: o que foi instalado (usado na desinstalação)
 ├── sdd/                     mesmos documentos, caminhos reescritos para .codex/
 ├── prompts/                 21 slash commands nativos, todos planos
 ├── kb/                      os mesmos 18 domínios, caminhos reescritos
@@ -325,8 +325,8 @@ npx github:ip2cloud/agentspec-sdd --uninstall --both --dry-run
 
 ### Como funciona
 
-Na instalação, o instalador grava um manifesto em `.claude/.agentspec-rdd.json`
-(ou `.codex/.agentspec-rdd.json`) com **cada arquivo que ele escreveu e o hash do
+Na instalação, o instalador grava um manifesto em `.claude/.agentspec-sdd.json`
+(ou `.codex/.agentspec-sdd.json`) com **cada arquivo que ele escreveu e o hash do
 conteúdo**. A desinstalação lê esse manifesto e é a única coisa em que ela se baseia —
 nunca apaga um diretório inteiro às cegas.
 

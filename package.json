@@ -1,5 +1,5 @@
 {
-  "name": "agentspec-rdd",
+  "name": "agentspec-sdd",
   "version": "0.2.0",
   "description": "Installer for the AgentSpec SDD workflow — 5-phase spec-driven development for Claude Code and Codex",
   "type": "module",
@@ -14,7 +14,7 @@
   },
   "homepage": "https://github.com/ip2cloud/agentspec-sdd#readme",
   "bin": {
-    "agentspec-rdd": "bin/cli.js"
+    "agentspec-sdd": "bin/cli.js"
   },
   "engines": {
     "node": ">=18.0.0"

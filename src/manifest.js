@@ -3,7 +3,7 @@ import { readFile, writeFile, rm, readdir, rmdir } from 'node:fs/promises'
 import { join, relative, dirname } from 'node:path'
 import { pathExists } from './util.js'
 
-export const MANIFEST_NAME = '.agentspec-rdd.json'
+export const MANIFEST_NAME = '.agentspec-sdd.json'
 
 const hash = (content) => createHash('sha256').update(content).digest('hex').slice(0, 16)
 
@@ -22,7 +22,7 @@ export async function writeManifest (root, target, version, report, options) {
   }
 
   const manifest = {
-    package: 'agentspec-rdd',
+    package: 'agentspec-sdd',
     version,
     target,
     installedAt: new Date().toISOString(),

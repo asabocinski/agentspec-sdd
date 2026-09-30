@@ -42,7 +42,7 @@ async function findLeaks (root, needles) {
   return found
 }
 
-const sandbox = await mkdtemp(join(tmpdir(), 'agentspec-rdd-'))
+const sandbox = await mkdtemp(join(tmpdir(), 'agentspec-sdd-'))
 const silence = console.log
 console.log = () => {}
 
@@ -164,7 +164,7 @@ try {
   await mkdir(gone, { recursive: true })
   await main(['--claude', '--dir', gone])
 
-  check('uninstall: manifest written', await pathExists(join(gone, '.claude/.agentspec-rdd.json')))
+  check('uninstall: manifest written', await pathExists(join(gone, '.claude/.agentspec-sdd.json')))
 
   await writeFile(join(gone, '.claude/sdd/features/DEFINE_MINE.md'), '# meu trabalho\n')
   await writeFile(join(gone, '.claude/agents/python/code-reviewer.md'), 'editado por mim\n')
@@ -182,7 +182,7 @@ try {
   check('uninstall: edited file kept',
     await pathExists(join(gone, '.claude/agents/python/code-reviewer.md')))
   check('uninstall: manifest removed',
-    !(await pathExists(join(gone, '.claude/.agentspec-rdd.json'))))
+    !(await pathExists(join(gone, '.claude/.agentspec-sdd.json'))))
 
   // Reinstall with --force so the file kept above is overwritten and tracked again;
   // without --force it stays skipped, and a skipped file is never manifest-owned.

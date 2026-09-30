@@ -15,17 +15,17 @@ const TARGETS = {
 }
 
 const HELP = `
-  ${style.bold('agentspec-rdd')} ${style.dim(`v${version}`)}
+  ${style.bold('agentspec-sdd')} ${style.dim(`v${version}`)}
   Installs the AgentSpec SDD workflow into a project.
 
   ${style.bold('Usage')}
-    npx agentspec-rdd [target] [options]
+    npx agentspec-sdd [target] [options]
 
   ${style.bold('Targets')}
     --claude          Install for Claude Code, into .claude/
     --codex           Install for Codex, into .codex/ plus AGENTS.md
     --both            Install both
-                      Targets also work as positional words: agentspec-rdd claude
+                      Targets also work as positional words: agentspec-sdd claude
 
   ${style.bold('Options')}
     --uninstall       Remove a previous install (see below)
@@ -42,11 +42,11 @@ const HELP = `
     files too. On Codex, only the managed block of AGENTS.md is stripped.
 
   ${style.bold('Examples')}
-    npx agentspec-rdd --claude
-    npx agentspec-rdd --codex --dir ../my-project
-    npx agentspec-rdd --both --dry-run
-    npx agentspec-rdd --uninstall --claude
-    npx agentspec-rdd --uninstall --both --dry-run
+    npx agentspec-sdd --claude
+    npx agentspec-sdd --codex --dir ../my-project
+    npx agentspec-sdd --both --dry-run
+    npx agentspec-sdd --uninstall --claude
+    npx agentspec-sdd --uninstall --both --dry-run
 `
 
 export function parseArgs (argv) {
