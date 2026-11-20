@@ -21,7 +21,7 @@ tier: T2
 kb_domains: []
 anti_pattern_refs: [shared-anti-patterns]
 color: purple
-model: opus
+model: deep
 stop_conditions:
   - "Task outside strategic planning scope -- escalate to appropriate specialist"
 escalation_rules:

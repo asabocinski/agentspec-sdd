@@ -16,7 +16,7 @@ tools: [Read, Write, Edit, Grep, Glob, Bash, TodoWrite]
 kb_domains: [data-quality, sql-patterns, dbt]
 anti_pattern_refs: [shared-anti-patterns]
 tier: T2
-model: sonnet
+model: standard
 stop_conditions:
   - All modified files reviewed in full
   - Security checklist completed

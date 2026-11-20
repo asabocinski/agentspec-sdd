@@ -136,14 +136,14 @@ System-level design and architecture decisions.
 
 | Agent | Tier | Model | Purpose |
 |-------|------|-------|---------|
-| `genai-architect` | T1 | opus | Multi-agent orchestration, agentic workflows, production AI systems |
-| `the-planner` | T2 | opus | Strategic architecture and comprehensive implementation plans |
-| `kb-architect` | T2 | sonnet | Knowledge base domain creation and audit |
-| `lakehouse-architect` | T2 | sonnet | Iceberg, Delta Lake, catalog governance design |
-| `medallion-architect` | T1 | sonnet | Bronze/Silver/Gold layer design, data quality progression |
-| `pipeline-architect` | T2 | sonnet | Airflow, Dagster, DAG design patterns |
-| `schema-designer` | T2 | sonnet | Dimensional modeling, SCD, Data Vault |
-| `data-platform-engineer` | T2 | sonnet | Snowflake, Databricks, BigQuery, cost optimization |
+| `genai-architect` | T1 | {{model-id:deep}} | Multi-agent orchestration, agentic workflows, production AI systems |
+| `the-planner` | T2 | {{model-id:deep}} | Strategic architecture and comprehensive implementation plans |
+| `kb-architect` | T2 | {{model-id:standard}} | Knowledge base domain creation and audit |
+| `lakehouse-architect` | T2 | {{model-id:standard}} | Iceberg, Delta Lake, catalog governance design |
+| `medallion-architect` | T1 | {{model-id:standard}} | Bronze/Silver/Gold layer design, data quality progression |
+| `pipeline-architect` | T2 | {{model-id:standard}} | Airflow, Dagster, DAG design patterns |
+| `schema-designer` | T2 | {{model-id:standard}} | Dimensional modeling, SCD, Data Vault |
+| `data-platform-engineer` | T2 | {{model-id:standard}} | Snowflake, Databricks, BigQuery, cost optimization |
 
 ### 2. Cloud (2 agents)
 
@@ -151,8 +151,8 @@ Cloud provider services, deployment, and CI/CD.
 
 | Agent | Tier | Model | Purpose |
 |-------|------|-------|---------|
-| `ci-cd-specialist` | T3 | sonnet | Azure DevOps, Terraform, Databricks Asset Bundles |
-| `supabase-specialist` | T3 | opus | pgvector, RLS, Edge Functions, Auth, Realtime |
+| `ci-cd-specialist` | T3 | {{model-id:standard}} | Azure DevOps, Terraform, Databricks Asset Bundles |
+| `supabase-specialist` | T3 | {{model-id:deep}} | pgvector, RLS, Edge Functions, Auth, Realtime |
 
 ### 3. Python (6 agents)
 
@@ -160,12 +160,12 @@ Python development, code quality, and prompt engineering.
 
 | Agent | Tier | Model | Purpose |
 |-------|------|-------|---------|
-| `python-developer` | T1 | sonnet | Python code architecture, dataclasses, type hints |
-| `code-reviewer` | T2 | sonnet | Review code for quality and security issues |
-| `code-cleaner` | T2 | sonnet | Clean code, remove redundant comments, apply DRY |
-| `code-documenter` | T2 | sonnet | Generate documentation, READMEs, API docs |
-| `ai-prompt-specialist` | T1 | sonnet | Prompt optimization, structured extraction, few-shot |
-| `llm-specialist` | T3 | opus | Advanced prompt engineering, chain-of-thought, structured output |
+| `python-developer` | T1 | {{model-id:standard}} | Python code architecture, dataclasses, type hints |
+| `code-reviewer` | T2 | {{model-id:standard}} | Review code for quality and security issues |
+| `code-cleaner` | T2 | {{model-id:standard}} | Clean code, remove redundant comments, apply DRY |
+| `code-documenter` | T2 | {{model-id:standard}} | Generate documentation, READMEs, API docs |
+| `ai-prompt-specialist` | T1 | {{model-id:standard}} | Prompt optimization, structured extraction, few-shot |
+| `llm-specialist` | T3 | {{model-id:deep}} | Advanced prompt engineering, chain-of-thought, structured output |
 
 ### 4. Test (3 agents)
 
@@ -173,9 +173,9 @@ Testing, data quality, and contract validation.
 
 | Agent | Tier | Model | Purpose |
 |-------|------|-------|---------|
-| `test-generator` | T2 | sonnet | Generate pytest tests with fixtures |
-| `data-quality-analyst` | T2 | sonnet | Great Expectations, dbt tests, data contracts |
-| `data-contracts-engineer` | T2 | sonnet | ODCS, SLAs, schema governance |
+| `test-generator` | T2 | {{model-id:standard}} | Generate pytest tests with fixtures |
+| `data-quality-analyst` | T2 | {{model-id:standard}} | Great Expectations, dbt tests, data contracts |
+| `data-contracts-engineer` | T2 | {{model-id:standard}} | ODCS, SLAs, schema governance |
 
 ### 5. Data Engineering (13 agents)
 
@@ -183,19 +183,19 @@ Implementation specialists for data pipelines and processing.
 
 | Agent | Tier | Model | Purpose |
 |-------|------|-------|---------|
-| `dbt-specialist` | T2 | sonnet | dbt models, macros, tests, incremental strategies |
-| `spark-engineer` | T2 | sonnet | PySpark, Spark SQL, distributed processing |
-| `spark-specialist` | T2 | opus | Spark architecture, configuration, performance |
-| `spark-troubleshooter` | T1 | sonnet | Spark debugging -- OOM, data skew, shuffle failures |
-| `spark-performance-analyzer` | T1 | sonnet | Spark tuning -- memory, partitions, joins, AQE |
-| `sql-optimizer` | T2 | sonnet | Query plans, cross-dialect SQL, window functions |
-| `airflow-specialist` | T3 | sonnet | Apache Airflow 3.0, DAGs, TaskFlow API |
-| `lakeflow-architect` | T3 | sonnet | Databricks Lakeflow, Medallion architecture |
-| `lakeflow-expert` | T3 | sonnet | DLT troubleshooting, CDC, SCD Type 2 |
-| `lakeflow-pipeline-builder` | T3 | sonnet | DLT pipeline creation, quality expectations |
-| `lakeflow-specialist` | T1 | sonnet | Declarative pipelines, materialized views, streaming tables |
-| `ai-data-engineer` | T2 | sonnet | RAG pipelines, vector DBs, feature stores |
-| `qdrant-specialist` | T3 | opus | Qdrant vector database, collection management |
+| `dbt-specialist` | T2 | {{model-id:standard}} | dbt models, macros, tests, incremental strategies |
+| `spark-engineer` | T2 | {{model-id:standard}} | PySpark, Spark SQL, distributed processing |
+| `spark-specialist` | T2 | {{model-id:deep}} | Spark architecture, configuration, performance |
+| `spark-troubleshooter` | T1 | {{model-id:standard}} | Spark debugging -- OOM, data skew, shuffle failures |
+| `spark-performance-analyzer` | T1 | {{model-id:standard}} | Spark tuning -- memory, partitions, joins, AQE |
+| `sql-optimizer` | T2 | {{model-id:standard}} | Query plans, cross-dialect SQL, window functions |
+| `airflow-specialist` | T3 | {{model-id:standard}} | Apache Airflow 3.0, DAGs, TaskFlow API |
+| `lakeflow-architect` | T3 | {{model-id:standard}} | Databricks Lakeflow, Medallion architecture |
+| `lakeflow-expert` | T3 | {{model-id:standard}} | DLT troubleshooting, CDC, SCD Type 2 |
+| `lakeflow-pipeline-builder` | T3 | {{model-id:standard}} | DLT pipeline creation, quality expectations |
+| `lakeflow-specialist` | T1 | {{model-id:standard}} | Declarative pipelines, materialized views, streaming tables |
+| `ai-data-engineer` | T2 | {{model-id:standard}} | RAG pipelines, vector DBs, feature stores |
+| `qdrant-specialist` | T3 | {{model-id:deep}} | Qdrant vector database, collection management |
 
 ### 6. Dev (4 agents)
 
@@ -203,10 +203,10 @@ Developer tools and productivity.
 
 | Agent | Tier | Model | Purpose |
 |-------|------|-------|---------|
-| `prompt-crafter` | T1 | sonnet | SDD-lite PROMPT.md builder with agent matching |
-| `codebase-explorer` | T2 | sonnet | Analyze codebase structure with health scoring |
-| `meeting-analyst` | T2 | sonnet | Extract decisions and action items from meetings |
-| `shell-script-specialist` | T2 | sonnet | Production-grade Bash scripts, automation, deployment scripts |
+| `prompt-crafter` | T1 | {{model-id:standard}} | SDD-lite PROMPT.md builder with agent matching |
+| `codebase-explorer` | T2 | {{model-id:standard}} | Analyze codebase structure with health scoring |
+| `meeting-analyst` | T2 | {{model-id:standard}} | Extract decisions and action items from meetings |
+| `shell-script-specialist` | T2 | {{model-id:standard}} | Production-grade Bash scripts, automation, deployment scripts |
 
 ### 7. Workflow (6 agents)
 
@@ -214,12 +214,12 @@ Drive the SDD workflow phases.
 
 | Agent | Tier | Model | Phase | Purpose |
 |-------|------|-------|-------|---------|
-| `brainstorm-agent` | T2 | sonnet | 0 | Explore ideas through collaborative dialogue |
-| `define-agent` | T2 | sonnet | 1 | Capture requirements with clarity scoring |
-| `design-agent` | T2 | opus | 2 | Create technical architecture with file manifest |
-| `build-agent` | T2 | opus | 3 | Execute implementation with agent delegation |
-| `ship-agent` | T2 | sonnet | 4 | Archive with lessons learned |
-| `iterate-agent` | T2 | sonnet | All | Update documents with cascade awareness |
+| `brainstorm-agent` | T2 | {{model-id:deep}} | 0 | Explore ideas through collaborative dialogue |
+| `define-agent` | T2 | {{model-id:deep}} | 1 | Capture requirements with clarity scoring |
+| `design-agent` | T2 | {{model-id:deep}} | 2 | Create technical architecture with file manifest |
+| `build-agent` | T2 | {{model-id:standard}} | 3 | Execute implementation with agent delegation |
+| `ship-agent` | T2 | {{model-id:fast}} | 4 | Archive with lessons learned |
+| `iterate-agent` | T2 | {{model-id:standard}} | All | Update documents with cascade awareness |
 
 ---
 
@@ -303,7 +303,7 @@ If any condition fails, extend an existing agent rather than creating a new one.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `model` | string | sonnet | LLM model: sonnet (default), opus (complex), haiku (fast) |
+| `model` | string | {{model-id:standard}} | Model class, resolved per assistant from `sdd/architecture/MODELS.yaml`: {{model-id:standard}} (default), {{model-id:deep}} (complex), {{model-id:fast}} (fast) |
 
 **Required for T2+ only:**
 

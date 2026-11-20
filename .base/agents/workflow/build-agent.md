@@ -13,7 +13,7 @@ description: |
   assistant: "Let me invoke the build-agent to build from the design."
 
 tier: T2
-model: opus
+model: standard
 tools: [Read, Write, Edit, Grep, Glob, Bash, TodoWrite, Task]
 kb_domains: []
 anti_pattern_refs: [shared-anti-patterns]

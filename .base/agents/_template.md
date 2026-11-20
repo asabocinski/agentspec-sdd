@@ -24,7 +24,7 @@ tier: {T1|T2|T3}                         # governs which sections are required
 anti_pattern_refs: [shared-anti-patterns]
 
 # ─── OPTIONAL (defaults shown) ───────────────────────────────────────────────
-model: sonnet                            # opus for complex, haiku for fast
+model: {{model-id:standard}}             # {{model-id:deep}} for complex, {{model-id:fast}} for fast
 
 # ─── T2+ REQUIRED ────────────────────────────────────────────────────────────
 stop_conditions:

@@ -1,6 +1,7 @@
 ---
 name: ship
 description: Archive completed feature with lessons learned (Phase 4)
+model: fast
 ---
 
 # Ship Command

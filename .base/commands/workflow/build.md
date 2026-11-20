@@ -1,6 +1,7 @@
 ---
 name: build
 description: Execute implementation with on-the-fly task generation (Phase 3)
+model: standard
 ---
 
 # Build Command

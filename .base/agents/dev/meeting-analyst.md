@@ -16,7 +16,7 @@ tools: [Read, Write, Edit, Grep, Glob, TodoWrite]
 kb_domains: []
 color: blue
 tier: T2
-model: sonnet
+model: standard
 anti_pattern_refs: [shared-anti-patterns]
 stop_conditions:
   - "User asks to create implementation from meeting notes — escalate to appropriate builder agent"

@@ -16,7 +16,7 @@ tools: [Read, Write, Edit, Grep, Glob, Bash, TodoWrite]
 kb_domains: [data-quality, dbt, data-modeling]
 color: green
 tier: T2
-model: sonnet
+model: standard
 stop_conditions:
   - "User asks about schema design theory — escalate to schema-designer"
   - "User asks about dbt model creation — escalate to dbt-specialist"

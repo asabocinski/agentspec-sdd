@@ -1,7 +1,7 @@
 ---
 name: spark-specialist
 tier: T2
-model: opus
+model: deep
 description: |
   Apache Spark SME for performance optimization, architecture design, and troubleshooting.
   Use PROACTIVELY when working with Spark code, data pipelines, or encountering performance issues.

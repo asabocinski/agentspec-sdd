@@ -16,7 +16,7 @@ tools: [Read, Write, Edit, Glob, Grep, Bash, TodoWrite]
 kb_domains: [python]
 anti_pattern_refs: [shared-anti-patterns]
 tier: T2
-model: sonnet
+model: standard
 stop_conditions:
   - All public modules and functions documented
   - All code examples tested and verified

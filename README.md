@@ -124,27 +124,55 @@ não uma cópia.
 ├── sdd/                     mesmos documentos, caminhos reescritos para .codex/
 ├── prompts/                 21 slash commands nativos, todos planos
 ├── kb/                      os mesmos 18 domínios, caminhos reescritos
-├── skills/<nome>/SKILL.md   42 skills convertidas dos subagentes
+├── agents/<nome>.toml       42 custom agents convertidos dos subagentes, cada um com seu modelo
 └── AGENTS.md                descrição do workflow, para o Codex ler
 ```
 
 Nada é criado fora de `.codex/`.
 
-No Codex as skills ficam todas planas em `.codex/skills/`, porque é assim que o Codex as
-descobre. A categoria de origem não se perde: o `.codex/AGENTS.md` agrupa os especialistas
-por categoria numa tabela.
+No Codex os agentes viram **custom agents** de projeto, todos planos em `.codex/agents/`,
+porque é assim que o Codex os descobre. Cada `.toml` traz `model` e `model_reasoning_effort`,
+então o agente roda no modelo que a arquitetura definiu. A categoria de origem não se perde:
+o `.codex/AGENTS.md` agrupa os especialistas por categoria numa tabela.
 
 Regras de conversão:
 
 | De (`.base/`) | Para (Codex) | Observação |
 |---------------|--------------|------------|
 | `commands/workflow/define.md` | `prompts/define.md` | O Codex tira o nome do slash do nome do arquivo |
-| `agents/workflow/define-agent.md` | `skills/define-agent/SKILL.md` | `tier`, `model` e `tools` viram tabela visível em vez de serem descartados |
-| `.base/agents/...` | `.codex/skills/...` | Reescrito em todos os documentos copiados |
+| `agents/workflow/define-agent.md` | `agents/define-agent.toml` | `model` vira `model` + `model_reasoning_effort` do Codex; `tier`, `tools` e `kb_domains` viram tabela visível |
+| `.base/agents/<cat>/<nome>.md` | `.codex/agents/<nome>.toml` | Reescrito em todos os documentos copiados |
 | `.base/CLAUDE.md` | `.codex/AGENTS.md` | Cada alvo tem o seu arquivo de instruções |
-| Delegação via ferramenta Task | Instrução inline | O Codex não tem Task; cada skill orienta a seguir as instruções inline |
+| `model:` de um comando de fase | Delegação ao agente da fase | Prompt do Codex não fixa modelo; o prompt manda delegar ao custom agent, que fixa |
 
 ---
+
+## Modelos por assistente
+
+O `.base/` **nunca nomeia um modelo concreto**. Fases e agentes declaram uma **classe de
+modelo**, e o instalador resolve a classe para o assistente escolhido. O mapa fica em
+[`.base/sdd/architecture/MODELS.yaml`](.base/sdd/architecture/MODELS.yaml), referenciado pelo
+`ARCHITECTURE.md` e pelo `WORKFLOW_CONTRACTS.yaml`: é a fonte única da verdade.
+
+| Classe | Claude Code | Codex | Usada por |
+|--------|-------------|-------|-----------|
+| `deep` | `opus` | `gpt-6.2-astra`, esforço `high` | Brainstorm, Define, Design e 6 especialistas |
+| `standard` | `sonnet` | `gpt-6.2-sol`, esforço `medium` | Build, Iterate e 30 especialistas |
+| `fast` | `haiku` | `gpt-6-luna`, esforço `high` | Ship |
+
+Onde a classe vira modelo em cada alvo:
+
+| No `.base/` | `--claude` | `--codex` |
+|-------------|------------|-----------|
+| `model: deep` no agente | `model: opus` no subagente | `model` e `model_reasoning_effort` no `.toml` |
+| `model: deep` no comando de fase | `model: opus` no comando: a fase roda nesse modelo | O prompt delega ao agente da fase, que fixa o modelo |
+| `{{model:deep}}` nos documentos | `Opus` | `GPT-6.2 Astra` |
+| `model_class` no contrato | `model: "opus"` | `model: "gpt-6.2-astra"` |
+
+Para trocar um modelo, edite o `MODELS.yaml` e reinstale com `--force`. Os modelos do Codex
+são aposentados com frequência, e por isso ficam num lugar só. Uma classe desconhecida faz a
+instalação falhar com erro, e o `npm test` confere que cada fase usa a classe que o contrato
+manda e que nenhum modelo de um assistente vaza para o outro.
 
 ## Como chamar as fases em cada assistente
 

@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { listFiles, pathExists } from '../src/util.js'
 import { main } from '../src/cli.js'
+import { loadModels, modelClassOf } from '../src/models.js'
 
 const checks = []
 const check = (name, condition) => checks.push({ name, ok: Boolean(condition) })
@@ -40,6 +41,42 @@ async function findLeaks (root, needles) {
   }
 
   return found
+}
+
+/**
+ * Files whose text matches `pattern`, skipping the KB (which legitimately talks
+ * about LLMs from every vendor) and MODELS.yaml (which maps both assistants).
+ */
+async function scan (root, pattern) {
+  const found = []
+
+  for (const file of await listFiles(root)) {
+    if (file.startsWith('kb/') || file.endsWith('MODELS.yaml')) continue
+    if (pattern.test(await readFile(join(root, file), 'utf8'))) found.push(file)
+  }
+
+  return found
+}
+
+/**
+ * The architecture decides the models: every phase in WORKFLOW_CONTRACTS.yaml
+ * names a model_class, and its agent and command must declare that same class.
+ */
+async function phaseClassesMatchContract () {
+  const base = new URL('../.base/', import.meta.url).pathname
+  const contract = await readFile(join(base, 'sdd/architecture/WORKFLOW_CONTRACTS.yaml'), 'utf8')
+  const phases = [...contract.matchAll(/command: "\/(\w+)"\r?\n\s+agent: "([\w-]+)"[\s\S]*?model_class: "(\w+)"/g)]
+  const wrong = []
+
+  for (const [, command, agent, modelClass] of phases) {
+    const agentClass = modelClassOf(await readFile(join(base, 'agents/workflow', `${agent}.md`), 'utf8'))
+    const commandClass = modelClassOf(await readFile(join(base, 'commands/workflow', `${command}.md`), 'utf8'))
+    if (agentClass !== modelClass) wrong.push(`${agent}: ${agentClass} != ${modelClass}`)
+    if (commandClass !== modelClass) wrong.push(`/${command}: ${commandClass} != ${modelClass}`)
+  }
+
+  if (wrong.length) console.error(`      ${wrong.join('\n      ')}`)
+  return phases.length === 6 && wrong.length === 0
 }
 
 const sandbox = await mkdtemp(join(tmpdir(), 'agentspec-sdd-'))
@@ -105,7 +142,7 @@ try {
     await pathExists(join(codexDir, '.codex/AGENTS.md')))
 
   const define = await readFile(join(codexDir, '.codex/prompts/define.md'), 'utf8')
-  const skill = await readFile(join(codexDir, '.codex/skills/define-agent/SKILL.md'), 'utf8')
+  const skill = await readFile(join(codexDir, '.codex/agents/define-agent.toml'), 'utf8')
   const agentsMd = await readFile(join(codexDir, '.codex/AGENTS.md'), 'utf8')
   const contracts = await readFile(join(codexDir, '.codex/sdd/architecture/WORKFLOW_CONTRACTS.yaml'), 'utf8')
 
@@ -115,18 +152,20 @@ try {
     (await pathExists(join(codexDir, '.codex/prompts/schema.md'))) &&
     (await pathExists(join(codexDir, '.codex/prompts/sync-context.md'))) &&
     !(await pathExists(join(codexDir, '.codex/prompts/README.md'))))
-  check('codex: 42 skills generated', (await listFiles(join(codexDir, '.codex/skills'))).length === 42)
-  check('codex: specialist skill converted',
-    await pathExists(join(codexDir, '.codex/skills/dbt-specialist/SKILL.md')))
-  check('codex: README/_template not turned into skills',
-    !(await pathExists(join(codexDir, '.codex/skills/README/SKILL.md'))) &&
-    !(await pathExists(join(codexDir, '.codex/skills/_template/SKILL.md'))))
+  check('codex: 42 custom agents generated',
+    (await listFiles(join(codexDir, '.codex/agents'))).filter((f) => f.endsWith('.toml')).length === 42)
+  check('codex: no skills directory any more', !(await pathExists(join(codexDir, '.codex/skills'))))
+  check('codex: specialist agent converted',
+    await pathExists(join(codexDir, '.codex/agents/dbt-specialist.toml')))
+  check('codex: README/_template not turned into agents',
+    !(await pathExists(join(codexDir, '.codex/agents/README.toml'))) &&
+    !(await pathExists(join(codexDir, '.codex/agents/_template.toml'))))
   check('codex: prompt keeps description', define.includes('description:'))
-  check('codex: skill declares name', skill.includes('name: define-agent'))
+  check('codex: agent declares name', skill.includes('name = "define-agent"'))
+  check('codex: agent has instructions', /^developer_instructions = '''\n# Define Agent\n/m.test(skill))
   const outsideFences = skill.replace(/```[\s\S]*?```/g, '')
-  check('codex: skill has one H1', (outsideFences.match(/^# /gm) ?? []).length === 1)
-  check('codex: skill blocks are separated', /\n# .+\n\n> Converted/.test(skill))
-  check('codex: skill keeps origin metadata', skill.includes('| **Tier** |'))
+  check('codex: agent instructions have one H1', (outsideFences.match(/^# /gm) ?? []).length === 1)
+  check('codex: agent keeps origin metadata', skill.includes('| **Tier** |'))
   check('codex: paths rewritten in prompts', !define.includes('.claude/'))
   check('codex: paths rewritten in sdd', !contracts.includes('.claude/'))
   check('codex: KB installed and rewritten',
@@ -145,10 +184,59 @@ try {
     claudeLeaks.length === 0)
   check(`codex: no .base/ or .claude/ paths (${codexLeaks.join(', ') || 'clean'})`,
     codexLeaks.length === 0)
+  // Models: the payload names classes, each target gets its own models.
+  const models = await loadModels(new URL('../.base/sdd/architecture/MODELS.yaml', import.meta.url).pathname)
+  const claudeIds = Object.values(models.classes).map((entry) => entry.claude.model)
+  const codexIds = Object.values(models.classes).map((entry) => entry.codex.model)
+  const classes = Object.keys(models.classes)
+
+  check('models: phase agents and commands match the contract', await phaseClassesMatchContract())
+
+  const unresolvedClaude = await scan(join(claudeDir, '.claude'), /\{\{model(-id)?:/)
+  const unresolvedCodex = await scan(join(codexDir, '.codex'), /\{\{model(-id)?:/)
+  check(`models: no unresolved placeholders (${[...unresolvedClaude, ...unresolvedCodex].join(', ') || 'clean'})`,
+    unresolvedClaude.length === 0 && unresolvedCodex.length === 0)
+
+  const claudeFrontmatter = []
+  for (const dir of ['agents', 'commands']) {
+    for (const file of await listFiles(join(claudeDir, '.claude', dir))) {
+      const value = modelClassOf(await readFile(join(claudeDir, '.claude', dir, file), 'utf8'))
+      if (value && !claudeIds.includes(value)) claudeFrontmatter.push(`${dir}/${file}: ${value}`)
+    }
+  }
+  check(`claude: every model is a Claude model (${claudeFrontmatter.join(', ') || 'clean'})`,
+    claudeFrontmatter.length === 0)
+  check('claude: phase command pins its model',
+    modelClassOf(await readFile(join(claudeDir, '.claude/commands/workflow/define.md'), 'utf8')) ===
+      models.classes.deep.claude.model)
+
+  const codexModelLeaks = await scan(join(codexDir, '.codex'),
+    new RegExp(`\\b(${claudeIds.join('|')})\\b`, 'i'))
+  const claudeModelLeaks = await scan(join(claudeDir, '.claude'),
+    new RegExp(codexIds.map((id) => id.replace(/\./g, '\\.')).join('|')))
+  check(`codex: no Claude models (${codexModelLeaks.join(', ') || 'clean'})`, codexModelLeaks.length === 0)
+  check(`claude: no Codex models (${claudeModelLeaks.join(', ') || 'clean'})`, claudeModelLeaks.length === 0)
+
+  const codexAgentModels = []
+  for (const file of await listFiles(join(codexDir, '.codex/agents'))) {
+    const toml = await readFile(join(codexDir, '.codex/agents', file), 'utf8')
+    const model = toml.match(/^model = "([^"]+)"$/m)?.[1]
+    if (!codexIds.includes(model)) codexAgentModels.push(`${file}: ${model}`)
+  }
+  check(`codex: every agent pins a Codex model (${codexAgentModels.join(', ') || 'clean'})`,
+    codexAgentModels.length === 0)
+  check('codex: define-agent runs on the deep model',
+    skill.includes(`model = "${models.classes.deep.codex.model}"`) &&
+    skill.includes(`model_reasoning_effort = "${models.classes.deep.codex.reasoning_effort}"`))
+  check('codex: phase prompt delegates to its pinned agent',
+    define.includes('`.codex/agents/define-agent.toml`') && define.includes(models.classes.deep.codex.model))
+  check('codex: AGENTS.md lists the model classes',
+    classes.every((name) => agentsMd.includes(`| \`${name}\` | ${models.classes[name].codex.label} |`)))
+
   check('codex: workflow doc says it is self-contained',
     agentsMd.includes('nothing outside `.codex/` was created or modified'))
   check('codex: AGENTS.md lists specialist categories',
-    agentsMd.includes('**data-engineering**') && agentsMd.includes('### Specialist skills'))
+    agentsMd.includes('**data-engineering**') && agentsMd.includes('### Specialist agents'))
 
   await main(['--codex', '--dir', codexDir])
   check('codex: re-running still leaves the project AGENTS.md alone',

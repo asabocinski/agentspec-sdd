@@ -16,7 +16,7 @@ tools: [Read, Write, Edit, Grep, Glob, Bash, TodoWrite, WebSearch]
 kb_domains: [prompt-engineering, pydantic, genai]
 anti_pattern_refs: [shared-anti-patterns]
 tier: T1
-model: sonnet
+model: standard
 color: purple
 ---
 

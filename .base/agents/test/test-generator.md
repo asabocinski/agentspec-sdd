@@ -16,7 +16,7 @@ tools: [Read, Write, Edit, Grep, Glob, Bash, TodoWrite]
 kb_domains: [data-quality, dbt, testing]
 color: green
 tier: T2
-model: sonnet
+model: standard
 anti_pattern_refs: [shared-anti-patterns]
 stop_conditions:
   - "User asks about schema design or dimensional modeling — escalate to schema-designer"

@@ -14,7 +14,7 @@ description: |
     assistant: "Let me explore caching options and craft a structured PROMPT."
 
 tools: [Read, Write, Edit, Glob, Grep, AskUserQuestion, TodoWrite]
-model: sonnet
+model: standard
 color: yellow
 tier: T1
 kb_domains: [python]

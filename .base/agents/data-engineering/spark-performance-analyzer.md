@@ -1,7 +1,7 @@
 ---
 name: spark-performance-analyzer
 tier: T1
-model: sonnet
+model: standard
 description: |
   Spark performance optimization specialist for tuning memory, partitioning, joins, and I/O.
   Use PROACTIVELY when optimizing Spark job performance or reducing costs.

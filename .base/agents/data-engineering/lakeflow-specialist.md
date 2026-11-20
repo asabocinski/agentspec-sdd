@@ -1,7 +1,7 @@
 ---
 name: lakeflow-specialist
 tier: T1
-model: sonnet
+model: standard
 description: |
   Databricks Lakeflow (DLT) specialist for declarative pipelines, materialized views, streaming tables, and expectations.
   Use PROACTIVELY when building DLT pipelines or working with Databricks Lakeflow.

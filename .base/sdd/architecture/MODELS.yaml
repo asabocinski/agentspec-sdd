@@ -1,0 +1,47 @@
+# AgentSpec - Model Classes
+# Single source of truth for the model every phase and agent runs on.
+#
+# Nothing under .base/ names a concrete model. Agents, commands and
+# WORKFLOW_CONTRACTS.yaml declare a class (deep | standard | fast), and the
+# installer resolves that class for the assistant it installs into:
+#
+#   model: deep   ->  --claude  ->  model: opus
+#                 ->  --codex   ->  model = "gpt-6.2-astra", model_reasoning_effort = "high"
+#
+# Documents use {{model:<class>}} for the display name and {{model-id:<class>}}
+# for the model identifier; both are replaced at install time.
+#
+# To change a model, edit it here and reinstall with --force.
+
+version: "1.0.0"
+
+classes:
+  deep:
+    purpose: "Nuanced understanding: exploration, requirements, architecture"
+    claude:
+      model: "opus"
+      label: "Opus"
+    codex:
+      model: "gpt-6.2-astra"
+      reasoning_effort: "high"
+      label: "GPT-6.2 Astra"
+
+  standard:
+    purpose: "Fast, accurate code generation and everyday specialist work"
+    claude:
+      model: "sonnet"
+      label: "Sonnet"
+    codex:
+      model: "gpt-6.2-sol"
+      reasoning_effort: "medium"
+      label: "GPT-6.2 Sol"
+
+  fast:
+    purpose: "Simple, well-scoped work such as archival"
+    claude:
+      model: "haiku"
+      label: "Haiku"
+    codex:
+      model: "gpt-6-luna"
+      reasoning_effort: "high"
+      label: "GPT-6 Luna"

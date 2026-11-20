@@ -15,7 +15,7 @@ tier: T1
 kb_domains: [medallion, data-modeling, lakehouse, data-quality]
 anti_pattern_refs: [shared-anti-patterns]
 color: purple
-model: sonnet
+model: standard
 ---
 
 # Medallion Architect

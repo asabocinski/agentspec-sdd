@@ -1,4 +1,5 @@
 import { rewritePaths } from './util.js'
+import { resolveClass, resolveModelPlaceholders } from './models.js'
 
 const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/
 
@@ -74,9 +75,11 @@ function splitHeading (body) {
 
 /**
  * Claude slash command -> Codex custom prompt. Codex resolves the slash name from
- * the filename, so only `description` and `argument-hint` survive in frontmatter.
+ * the filename, so only `description` survives in frontmatter. Codex prompts
+ * cannot pin a model, so a command that declares a model class is told to hand
+ * the phase to its custom agent, which does carry the model.
  */
-export function toCodexPrompt (asset, sourceName) {
+export function toCodexPrompt (asset, sourceName, models) {
   const { attrs, body } = parseAsset(asset)
   const name = attrs.name ?? sourceName
 
@@ -90,34 +93,60 @@ export function toCodexPrompt (asset, sourceName) {
     '---'
   ].join('\n')
 
-  return {
-    name,
-    content: `${frontmatter}\n\n${rewritePaths(body, 'codex')}\n`
+  const where = `commands/${sourceName}.md`
+  let content = resolveModelPlaceholders(rewritePaths(body, 'codex'), 'codex', models, where)
+
+  if (attrs.model) {
+    const model = resolveClass(models, 'codex', attrs.model, where)
+    const agent = body.match(/\.base\/agents\/workflow\/([\w-]+)\.md/)?.[1]
+
+    const note = agent
+      ? `> **Model:** this phase runs on ${model.label} (\`${model.model}\`, reasoning \`${model.reasoning_effort ?? 'default'}\`).\n` +
+        `> Delegate it to the \`${agent}\` custom agent (\`.codex/agents/${agent}.toml\`), which is pinned\n` +
+        '> to that model, and wait for its result before reporting back.'
+      : `> **Model:** this command is meant to run on ${model.label} (\`${model.model}\`).`
+
+    const { title, rest } = splitHeading(content)
+    content = title ? `# ${title}\n\n${note}\n\n${rest}` : `${note}\n\n${content}`
   }
+
+  return { name, model: attrs.model ?? null, content: `${frontmatter}\n\n${content}\n` }
 }
 
 const AGENT_METADATA_KEYS = [
   ['tier', 'Tier'],
-  ['model', 'Model'],
   ['tools', 'Tools'],
   ['kb_domains', 'KB domains']
 ]
 
+/** TOML multi-line string. Literal form needs no escaping; fall back to basic form if the text contains its delimiter. */
+function tomlMultiline (text) {
+  if (!text.includes("'''")) return `'''\n${text}\n'''`
+  const escaped = text.replace(/\\/g, '\\\\').replace(/"""/g, '""\\"')
+  return `"""\n${escaped}\n"""`
+}
+
 /**
- * Claude subagent -> Codex skill. Codex skills carry only name + description in
- * frontmatter, so the remaining Claude metadata is preserved as a visible table
- * rather than silently dropped.
+ * Claude subagent -> Codex custom agent (.codex/agents/<name>.toml). The model
+ * class is resolved to a Codex model and reasoning effort from MODELS.yaml, so the
+ * agent runs on the model the architecture assigns it. Claude-only metadata with
+ * no Codex field is kept as a visible table in the instructions.
  */
-export function toCodexSkill (asset, sourceName) {
+export function toCodexAgent (asset, sourceName, models) {
   const { attrs, body } = parseAsset(asset)
   const name = attrs.name ?? sourceName
+  const where = `agents/${sourceName}.md`
 
   if (!name) {
     throw new Error(`agent asset has no resolvable name (source: ${sourceName})`)
   }
 
+  if (!attrs.model) {
+    throw new Error(`agent ${where} declares no model class`)
+  }
+
+  const model = resolveClass(models, 'codex', attrs.model, where)
   const description = attrs.description ?? `AgentSpec ${name}`
-  const frontmatter = ['---', `name: ${name}`, yamlBlock('description', description), '---'].join('\n')
 
   const metadata = AGENT_METADATA_KEYS
     .filter(([key]) => attrs[key] !== undefined && attrs[key].length > 0)
@@ -128,24 +157,34 @@ export function toCodexSkill (asset, sourceName) {
 
   const { title, rest } = splitHeading(body)
 
-  const metadataTable = metadata.length
-    ? ['## Origin Metadata', '', '| Attribute | Value |', '|-----------|-------|', ...metadata].join('\n')
-    : ''
-
   const preamble = [
     `# ${title ?? name}`,
     '',
-    '> Converted from a Claude Code subagent by `agentspec-sdd`. Codex has no Task',
-    '> tool: when the SDD workflow says to delegate to this agent, follow these',
-    '> instructions inline instead of spawning a separate agent.'
+    '> Converted from a Claude Code subagent by `agentspec-sdd`. Model class',
+    `> \`${attrs.model}\` resolves to ${model.label} (\`${model.model}\`) in Codex.`
   ]
 
-  if (metadataTable) preamble.push('', metadataTable)
-
-  return {
-    name,
-    content: `${frontmatter}\n\n${preamble.join('\n')}\n\n${rewritePaths(rest, 'codex')}\n`
+  if (metadata.length) {
+    preamble.push('', '## Origin Metadata', '', '| Attribute | Value |', '|-----------|-------|', ...metadata)
   }
+
+  const instructions = resolveModelPlaceholders(
+    `${preamble.join('\n')}\n\n${rewritePaths(rest, 'codex')}`.replace(/\r\n/g, '\n'),
+    'codex', models, where)
+
+  const lines = [
+    `name = ${JSON.stringify(name)}`,
+    `description = ${JSON.stringify(description)}`,
+    `model = ${JSON.stringify(model.model)}`
+  ]
+
+  if (model.reasoning_effort) {
+    lines.push(`model_reasoning_effort = ${JSON.stringify(model.reasoning_effort)}`)
+  }
+
+  lines.push(`developer_instructions = ${tomlMultiline(instructions)}`)
+
+  return { name, modelClass: attrs.model, content: `${lines.join('\n')}\n` }
 }
 
 const PROFILE_DOCS = new Set(['README.md', '_index.md'])
@@ -179,16 +218,24 @@ export function decorateSddDoc (content, file, targetDir) {
   return [...head, '', notice, ...tail].join('\n')
 }
 
-export function buildAgentsDoc (commands, agents) {
+export function buildAgentsDoc (commands, agents, models) {
+  const modelOf = (modelClass) => resolveClass(models, 'codex', modelClass)
+
   const commandRows = commands
-    .map((command) => `| \`/${command.name}\` | ${firstLine(command.description)} |`)
+    .map((command) => {
+      const model = command.model ? modelOf(command.model).label : 'session model'
+      return `| \`/${command.name}\` | ${model} | ${firstLine(command.description)} |`
+    })
     .join('\n')
 
   const phaseAgents = agents.filter((agent) => agent.category === 'workflow')
   const specialists = agents.filter((agent) => agent.category !== 'workflow')
 
   const agentRows = phaseAgents
-    .map((agent) => `| \`${agent.name}\` | \`.codex/skills/${agent.name}/SKILL.md\` |`)
+    .map((agent) => {
+      const model = modelOf(agent.modelClass)
+      return `| \`${agent.name}\` | ${model.label} (\`${model.model}\`) | \`.codex/agents/${agent.name}.toml\` |`
+    })
     .join('\n')
 
   const byCategory = new Map()
@@ -200,6 +247,14 @@ export function buildAgentsDoc (commands, agents) {
     .sort((a, b) => b[1].length - a[1].length)
     .map(([category, names]) =>
       `| **${category}** | ${names.length} | ${names.map((name) => `\`${name}\``).join(', ')} |`)
+    .join('\n')
+
+  const classRows = Object.entries(models.classes)
+    .map(([name, entry]) => {
+      const count = agents.filter((agent) => agent.modelClass === name).length
+      const effort = entry.codex.reasoning_effort ? `\`${entry.codex.reasoning_effort}\`` : 'default'
+      return `| \`${name}\` | ${entry.codex.label} | \`${entry.codex.model}\` | ${effort} | ${count} |`
+    })
     .join('\n')
 
   return [
@@ -219,33 +274,45 @@ export function buildAgentsDoc (commands, agents) {
     '',
     '### Phase prompts',
     '',
-    'Invoke these as slash commands; each one is a file under `.codex/prompts/`.',
+    'Invoke these as slash commands; each one is a file under `.codex/prompts/`. A prompt',
+    'cannot pin a model, so each phase prompt hands the work to its phase agent, which does.',
     '',
-    '| Prompt | Purpose |',
-    '|--------|---------|',
+    '| Prompt | Model | Purpose |',
+    '|--------|-------|---------|',
     commandRows,
     '',
-    '### Phase skills',
+    '### Phase agents',
     '',
-    'Each phase has a matching skill holding the detailed procedure. There is no Task',
-    'tool in Codex, so read the relevant skill and follow it inline.',
+    'Each phase has a project-scoped custom agent holding the detailed procedure, pinned to',
+    'the model the architecture assigns that phase. Spawn it to run the phase.',
     '',
-    '| Skill | Location |',
-    '|-------|----------|',
+    '| Agent | Model | File |',
+    '|-------|-------|------|',
     agentRows,
     '',
-    '### Specialist skills',
+    '### Specialist agents',
     '',
-    `${specialists.length} domain specialists live under \`.codex/skills/\`. DESIGN assigns one to each`,
-    'file in the manifest; BUILD then reads that skill and follows it while writing the file.',
+    `${specialists.length} domain specialists live under \`.codex/agents/\`. DESIGN assigns one to each`,
+    'file in the manifest; BUILD then delegates that file to the matching agent.',
     '',
-    '| Category | Count | Skills |',
+    '| Category | Count | Agents |',
     '|----------|------:|--------|',
     specialistRows,
     '',
+    '### Models',
+    '',
+    'Phases and agents declare a model class, not a model. For Codex the classes resolve to:',
+    '',
+    '| Class | Model | Identifier | Reasoning effort | Agents |',
+    '|-------|-------|------------|------------------|-------:|',
+    classRows,
+    '',
+    'The mapping lives in `.codex/sdd/architecture/MODELS.yaml`. To change a model, edit the',
+    'source `MODELS.yaml` in agentspec-sdd and reinstall with `--force`.',
+    '',
     '### Knowledge base',
     '',
-    'Every skill declares the KB domains it reads (`kb_domains:` in its frontmatter) and follows',
+    'Every agent declares the KB domains it reads (`KB domains` in its Origin Metadata) and follows',
     '**KB-First resolution**: read the local domain before reaching for anything external.',
     '',
     '```text',

@@ -1,7 +1,7 @@
 ---
 name: qdrant-specialist
 tier: T3
-model: opus
+model: deep
 description: |
   Elite Qdrant vector database specialist for collection management, point operations, payload filtering, search optimization, and RAG pipeline integration.
   No direct MCP for Qdrant operations -- all database interactions go through REST API (HTTP requests) or n8n native Qdrant nodes.

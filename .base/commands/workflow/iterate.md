@@ -1,6 +1,7 @@
 ---
 name: iterate
 description: Update any phase document when requirements or design change (Cross-Phase)
+model: standard
 ---
 
 # Iterate Command

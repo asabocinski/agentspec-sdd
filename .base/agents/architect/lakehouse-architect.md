@@ -20,7 +20,7 @@ tools: [Read, Write, Edit, Grep, Glob, Bash, TodoWrite]
 tier: T2
 kb_domains: [lakehouse, spark, data-modeling]
 color: blue
-model: sonnet
+model: standard
 stop_conditions:
   - "User asks about platform provisioning — escalate to data-platform-engineer"
   - "User asks about PySpark job code — escalate to spark-engineer"

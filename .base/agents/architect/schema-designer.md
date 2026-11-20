@@ -20,7 +20,7 @@ tools: [Read, Write, Edit, Grep, Glob, Bash, TodoWrite]
 tier: T2
 kb_domains: [data-modeling, sql-patterns, data-quality]
 color: purple
-model: sonnet
+model: standard
 stop_conditions:
   - "User asks about dbt implementation — escalate to dbt-specialist"
   - "User asks about PySpark transforms — escalate to spark-engineer"

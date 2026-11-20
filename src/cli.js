@@ -5,6 +5,7 @@ import { createRequire } from 'node:module'
 import { createReport, pathExists, style } from './util.js'
 import { installClaude, installCodex, uninstallClaude, uninstallCodex } from './targets.js'
 import { writeManifest } from './manifest.js'
+import { loadModels } from './models.js'
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const { version } = createRequire(import.meta.url)('../package.json')
@@ -150,6 +151,9 @@ async function resolvePayload () {
       }
     }
   }
+
+  // Model classes are resolved per target from the architecture's own mapping.
+  payload.models = await loadModels(join(base, 'sdd', 'architecture', 'MODELS.yaml'))
 
   return payload
 }

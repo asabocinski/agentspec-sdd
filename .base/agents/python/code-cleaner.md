@@ -16,7 +16,7 @@ tools: [Read, Write, Edit, Grep, Glob, TodoWrite]
 kb_domains: [python]
 anti_pattern_refs: [shared-anti-patterns]
 tier: T2
-model: sonnet
+model: standard
 stop_conditions:
   - All identified code smells resolved
   - Public API signatures unchanged

@@ -14,9 +14,10 @@ import {
   buildAgentsDoc,
   decorateSddDoc,
   parseAsset,
-  toCodexPrompt,
-  toCodexSkill
+  toCodexAgent,
+  toCodexPrompt
 } from './convert.js'
+import { resolveFrontmatterModel, resolveModelPlaceholders } from './models.js'
 
 const WORKING_DIRS = ['features', 'reports', 'archive']
 
@@ -63,11 +64,17 @@ export const uninstallCodex = (options) => uninstall('codex', 'Codex', options)
 
 /**
  * Claude Code target: the payload is already in its native format, so this is a
- * verbatim copy into `.claude/`.
+ * copy into `.claude/` with paths rewritten and model classes resolved to Claude
+ * models — in agent and command frontmatter, and in the {{model:…}} placeholders
+ * the architecture documents use.
  */
 export async function installClaude (payload, options, report) {
   const root = join(options.dir, '.claude')
-  const render = (content, file) => rewritePaths(decorateSddDoc(content, file, '.claude'), 'claude')
+  const render = (content, file) => {
+    const resolved = resolveFrontmatterModel(content, 'claude', payload.models, file)
+    return resolveModelPlaceholders(
+      rewritePaths(decorateSddDoc(resolved, file, '.claude'), 'claude'), 'claude', payload.models, file)
+  }
 
   await copyTree(payload.sdd, join(root, 'sdd'), options, report, render)
   // README.md is excluded: anything under commands/ is discovered as a slash
@@ -87,13 +94,17 @@ export async function installClaude (payload, options, report) {
 }
 
 /**
- * Codex target: SDD documents are copied with their paths rewritten, commands
- * become native prompts, agents become skills, and AGENTS.md points at all of it.
+ * Codex target: SDD documents are copied with paths rewritten and model classes
+ * resolved to Codex models, commands become native prompts, agents become
+ * project-scoped custom agents (.codex/agents/<name>.toml) pinned to their model,
+ * and .codex/AGENTS.md describes all of it.
  */
 export async function installCodex (payload, options, report) {
   const root = join(options.dir, '.codex')
+  const { models } = payload
 
-  const render = (content, file) => rewritePaths(decorateSddDoc(content, file, '.codex'), 'codex')
+  const render = (content, file) => resolveModelPlaceholders(
+    rewritePaths(decorateSddDoc(content, file, '.codex'), 'codex'), 'codex', models, file)
 
   await copyTree(payload.sdd, join(root, 'sdd'), options, report, render)
   await copyTree(payload.kb, join(root, 'kb'), options, report, render)
@@ -107,10 +118,10 @@ export async function installCodex (payload, options, report) {
     for (const file of await listFiles(dir)) {
       if (!isCommandAsset(file)) continue
       const source = await readText(join(dir, file))
-      const prompt = toCodexPrompt(source, basename(file, '.md'))
+      const prompt = toCodexPrompt(source, basename(file, '.md'), models)
       const { attrs } = parseAsset(source)
 
-      commands.push({ name: prompt.name, description: attrs.description ?? '' })
+      commands.push({ name: prompt.name, model: prompt.model, description: attrs.description ?? '' })
       await writeIfAllowed(join(root, 'prompts', `${prompt.name}.md`), prompt.content, options, report)
     }
   }
@@ -119,17 +130,17 @@ export async function installCodex (payload, options, report) {
   for (const file of await listFiles(payload.agents)) {
     if (!isAgentAsset(file)) continue
     const source = await readText(join(payload.agents, file))
-    const skill = toCodexSkill(source, basename(file, '.md'))
+    const agent = toCodexAgent(source, basename(file, '.md'), models)
 
-    agents.push({ name: skill.name, category: categoryOf(file) })
-    await writeIfAllowed(join(root, 'skills', skill.name, 'SKILL.md'), skill.content, options, report)
+    agents.push({ name: agent.name, category: categoryOf(file), modelClass: agent.modelClass })
+    await writeIfAllowed(join(root, 'agents', `${agent.name}.toml`), agent.content, options, report)
   }
 
   // Written inside .codex/, never at the project root: the root AGENTS.md belongs
   // to the project and this installer must not create or modify it.
   await writeIfAllowed(
     join(root, 'AGENTS.md'),
-    buildAgentsDoc(commands, agents),
+    buildAgentsDoc(commands, agents, models),
     options,
     report
   )

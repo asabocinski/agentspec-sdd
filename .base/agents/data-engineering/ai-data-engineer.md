@@ -18,7 +18,7 @@ description: |
 tools: [Read, Write, Edit, Grep, Glob, Bash, TodoWrite]
 kb_domains: [ai-data-engineering, data-quality]
 color: purple
-model: sonnet
+model: standard
 stop_conditions:
   - "User asks about batch pipeline orchestration — escalate to pipeline-architect"
   - "User asks about PySpark transforms — escalate to spark-engineer"
