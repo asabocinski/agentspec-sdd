@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { readFile, writeFile, rm, readdir, rmdir } from 'node:fs/promises'
-import { join, relative, dirname } from 'node:path'
+import { join, relative } from 'node:path'
 import { pathExists } from './util.js'
 
 export const MANIFEST_NAME = '.agentspec-sdd.json'
@@ -109,4 +109,3 @@ export async function pruneEmptyDirs (root, options) {
   return pruned
 }
 
-export const manifestDir = (path) => dirname(path)

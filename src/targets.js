@@ -1,5 +1,5 @@
 import { basename, extname, join } from 'node:path'
-import { copyFile, mkdir, rm, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, rm } from 'node:fs/promises'
 import { pruneEmptyDirs, readManifest, removeRecordedFiles, MANIFEST_NAME } from './manifest.js'
 import {
   ensureDir,
@@ -83,7 +83,7 @@ export async function installClaude (payload, options, report) {
     await ensureDir(join(root, 'sdd', dir), options)
   }
 
-  return { root, note: 'Run /define to start the workflow.' }
+  return { root, note: 'Restart Claude Code, then run /workflow:define to start the workflow.' }
 }
 
 /**

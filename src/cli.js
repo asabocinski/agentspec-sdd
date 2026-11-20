@@ -23,7 +23,7 @@ const HELP = `
 
   ${style.bold('Targets')}
     --claude          Install for Claude Code, into .claude/
-    --codex           Install for Codex, into .codex/ plus AGENTS.md
+    --codex           Install for Codex, into .codex/
     --both            Install both
                       Targets also work as positional words: agentspec-sdd claude
 
@@ -39,7 +39,7 @@ const HELP = `
     Only files recorded in the install manifest are removed, and only while their
     contents still match what was installed. Your work under sdd/features/, agents
     you added by hand, and files you edited are kept. Use --force to remove edited
-    files too. On Codex, only the managed block of AGENTS.md is stripped.
+    files too. The project's own CLAUDE.md and AGENTS.md are never touched.
 
   ${style.bold('Examples')}
     npx agentspec-sdd --claude
@@ -117,7 +117,7 @@ async function promptForTarget () {
   try {
     console.log(`\n  ${style.bold('Which assistant is this project for?')}\n`)
     console.log(`    ${style.cyan('1')}  Claude Code  ${style.dim('-> .claude/')}`)
-    console.log(`    ${style.cyan('2')}  Codex        ${style.dim('-> .codex/ + AGENTS.md')}`)
+    console.log(`    ${style.cyan('2')}  Codex        ${style.dim('-> .codex/')}`)
     console.log(`    ${style.cyan('3')}  Both\n`)
 
     const answer = (await rl.question('  Choice [1]: ')).trim() || '1'

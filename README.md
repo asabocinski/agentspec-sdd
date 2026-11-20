@@ -3,19 +3,22 @@
 > Instala o **workflow SDD do AgentSpec** — desenvolvimento orientado a especificação em 5 fases — em um projeto, para **Claude Code** ou **Codex**.
 
 ```bash
-npx github:ip2cloud/agentspec-sdd --claude    # -> .claude/
-npx github:ip2cloud/agentspec-sdd --codex     # -> .codex/
+npx github:asabocinski/agentspec-sdd --claude    # -> .claude/
+npx github:asabocinski/agentspec-sdd --codex     # -> .codex/
 ```
 
 Rodando sem alvo, ele pergunta qual assistente o projeto usa.
 
-Publicado no npm — a forma curta funciona de qualquer lugar:
+Quando o pacote estiver publicado no npm como `agentspec-sdd`, a forma curta também funciona:
 
 ```bash
 npx agentspec-sdd --claude
 npx agentspec-sdd --codex
 npx agentspec-sdd --both
 ```
+
+> Hoje o npm só tem o nome antigo, `agentspec-rdd`. Até publicar `agentspec-sdd`, use a forma
+> `github:asabocinski/agentspec-sdd`.
 
 ---
 
@@ -232,7 +235,7 @@ No Claude Code isso não é necessário — ele varre `.claude/` sozinho.
 | `-h, --help` | Mostra a ajuda |
 | `-v, --version` | Mostra a versão |
 
-Os alvos também funcionam como palavra posicional: `npx github:ip2cloud/agentspec-sdd codex`.
+Os alvos também funcionam como palavra posicional: `npx github:asabocinski/agentspec-sdd codex`.
 
 Arquivos existentes são **pulados**, não sobrescritos, a menos que você passe `--force`.
 O resumo sempre informa quantos arquivos foram criados, atualizados e pulados.
@@ -319,8 +322,8 @@ de outro projeto.
 ## Desinstalação
 
 ```bash
-npx github:ip2cloud/agentspec-sdd --uninstall --claude
-npx github:ip2cloud/agentspec-sdd --uninstall --both --dry-run
+npx github:asabocinski/agentspec-sdd --uninstall --claude
+npx github:asabocinski/agentspec-sdd --uninstall --both --dry-run
 ```
 
 ### Como funciona
@@ -420,7 +423,7 @@ não existe no seu projeto.
 ## Desenvolvimento
 
 ```bash
-git clone git@github.com:ip2cloud/agentspec-sdd.git
+git clone git@github.com:asabocinski/agentspec-sdd.git
 cd agentspec-sdd
 npm test        # verificação do payload + testes de fumaça do instalador
 ```
@@ -444,8 +447,7 @@ Para usar o próprio toolkit enquanto desenvolve o repositório:
 npm run bootstrap    # instala .base/ -> .claude/ neste repositório
 ```
 
-O `.claude/` gerado é ignorado pelo git (exceto `settings.json`, que é config real deste
-repositório). **Editar um arquivo dentro do `.claude/` gerado não tem efeito** — o próximo
+O `.claude/` gerado é ignorado pelo git por inteiro, inclusive `settings*.json`. **Editar um arquivo dentro do `.claude/` gerado não tem efeito** — o próximo
 bootstrap sobrescreve. Edite em `.base/` e rode o bootstrap de novo.
 
 ## Licença
