@@ -3,11 +3,15 @@
 > Instala o **workflow SDD do AgentSpec** — desenvolvimento orientado a especificação em 5 fases — em um projeto, para **Claude Code** ou **Codex**.
 
 ```bash
-npx github:asabocinski/agentspec-sdd --claude    # -> .claude/
-npx github:asabocinski/agentspec-sdd --codex     # -> .codex/
+npx --allow-git=all github:asabocinski/agentspec-sdd --claude    # -> .claude/
+npx --allow-git=all github:asabocinski/agentspec-sdd --codex     # -> .codex/
 ```
 
 Rodando sem alvo, ele pergunta qual assistente o projeto usa.
+
+> O `--allow-git=all` é necessário a partir do **npm 12**, que deixou de instalar pacotes vindos
+> do Git sem autorização explícita. Sem ele o npm 12 falha com `EALLOWGIT`; nas versões
+> anteriores a flag é aceita e não muda nada.
 
 Quando o pacote estiver publicado no npm como `agentspec-sdd`, a forma curta também funciona:
 
@@ -263,7 +267,7 @@ No Claude Code isso não é necessário — ele varre `.claude/` sozinho.
 | `-h, --help` | Mostra a ajuda |
 | `-v, --version` | Mostra a versão |
 
-Os alvos também funcionam como palavra posicional: `npx github:asabocinski/agentspec-sdd codex`.
+Os alvos também funcionam como palavra posicional: `npx --allow-git=all github:asabocinski/agentspec-sdd codex`.
 
 Arquivos existentes são **pulados**, não sobrescritos, a menos que você passe `--force`.
 O resumo sempre informa quantos arquivos foram criados, atualizados e pulados.
@@ -350,8 +354,8 @@ de outro projeto.
 ## Desinstalação
 
 ```bash
-npx github:asabocinski/agentspec-sdd --uninstall --claude
-npx github:asabocinski/agentspec-sdd --uninstall --both --dry-run
+npx --allow-git=all github:asabocinski/agentspec-sdd --uninstall --claude
+npx --allow-git=all github:asabocinski/agentspec-sdd --uninstall --both --dry-run
 ```
 
 ### Como funciona
@@ -480,24 +484,41 @@ bootstrap sobrescreve. Edite em `.base/` e rode o bootstrap de novo.
 
 ## Publicação no npm
 
-A publicação roda no GitHub Actions; não precisa de máquina local.
+A publicação roda no GitHub Actions (workflow `publish.yml`), sem máquina local e **sem token
+guardado**: ela usa *trusted publishing* (OIDC), em que o npm confia neste repositório e neste
+workflow específicos.
 
-**Uma vez só:** crie no npm um *Granular Access Token* com *Read and write* e *Bypass
-two-factor authentication*, e salve em **Settings → Secrets and variables → Actions** como
-`NPM_TOKEN`.
+### Primeira publicação (uma vez só)
 
-**A cada versão:**
+O npm só deixa configurar o trusted publishing depois que o pacote existe, então a primeira
+versão sai por outro caminho. Escolha um:
+
+- **Da sua máquina:** `npm login` (com 2FA) e `npm publish` na `main`.
+- **Pelo GitHub Actions, com um token temporário:** crie no npm um *Granular Access Token* com
+  *Read and write* e *Bypass two-factor authentication*, salve como secret `NPM_TOKEN` e publique
+  a release (passo abaixo). O npm vai deixar de aceitar publicação direta com esse tipo de token
+  por volta de janeiro de 2027.
+
+Depois, em **npmjs.com → agentspec-sdd → Settings → Trusted publishing**, adicione um publisher
+GitHub Actions com `asabocinski`, `agentspec-sdd` e `publish.yml`, marcando **Allow npm publish**.
+A primeira publicação por OIDC precisa acontecer em até 2 dias. Se usou o token, apague o secret
+`NPM_TOKEN` e revogue o token. Por fim, em **Publishing access**, marque *Require two-factor
+authentication and disallow tokens*.
+
+### A cada versão
 
 1. Suba o `version` no `package.json` (`npm version minor --no-git-tag-version`) e faça merge.
 2. Em **Releases → Draft a new release**, crie a tag `v<versão>` (por exemplo `v0.3.0`) e publique.
-3. O workflow **Publish to npm** confere que a tag bate com o `package.json`, que a versão
-   ainda não existe no npm, roda o `npm test` e publica com *provenance*.
+3. O workflow confere que a tag bate com o `package.json`, que a versão ainda não existe no npm,
+   roda o `npm test` e publica, com *provenance* gerada automaticamente.
 
 Também dá para disparar à mão em **Actions → Publish to npm → Run workflow**.
 
-O workflow **Remove legacy npm package** apaga o nome antigo, `agentspec-rdd`. Ele só roda à
-mão, exige digitar `agentspec-rdd` como confirmação e só prossegue se o `agentspec-sdd` já
-estiver publicado. Não tem volta.
+### Remover o nome antigo (`agentspec-rdd`)
+
+Desde agosto de 2026, ações de gestão de pacote exigem 2FA interativo, e tokens não servem mais
+para isso. Remova pelo site: **npmjs.com → agentspec-rdd → Settings → Delete package**, ou
+`npm unpublish agentspec-rdd --force` logado com 2FA. Não tem volta.
 
 ## Licença
 

@@ -1,8 +1,17 @@
 name: Publish to npm
 
 # Publishes when a GitHub release is published (tag vX.Y.Z), or by hand from the
-# Actions tab. Needs the repository secret NPM_TOKEN: an npm granular access token
-# with read and write on the package and "Bypass two-factor authentication".
+# Actions tab.
+#
+# Authentication is trusted publishing (OIDC): no token is stored anywhere. It is
+# configured on npmjs.com -> agentspec-sdd -> Settings -> Trusted publishing, with
+# this repository and the workflow filename "publish.yml".
+#
+# npm only lets you configure a trusted publisher once the package exists, so the
+# very first version has to be published another way (see "Publicação no npm" in
+# the README). The optional NPM_TOKEN secret covers that one publish; npm tries
+# OIDC first and only falls back to it. Delete the secret once OIDC works: npm is
+# removing direct publishes from 2FA-bypass tokens around January 2027.
 
 on:
   release:
@@ -11,7 +20,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write   # npm provenance: links the published package to this build
+  id-token: write   # OIDC for trusted publishing, and provenance
 
 concurrency:
   group: npm-publish
@@ -21,12 +30,14 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      # Trusted publishing needs npm >= 11.5.1 and Node >= 22.14; Node 24 has both.
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org
+          package-manager-cache: false   # never cache in release builds
 
       - name: Release tag matches package.json
         if: github.event_name == 'release'
@@ -49,6 +60,6 @@ jobs:
       - run: npm test
 
       - name: Publish
-        run: npm publish --provenance --access public
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
