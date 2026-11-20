@@ -15,7 +15,7 @@ description: |
 tools: [Read, Write, Edit, Grep, Glob, Bash, TodoWrite, WebSearch]
 color: orange
 tier: T2
-model: sonnet
+model: standard
 kb_domains: []
 anti_pattern_refs: [shared-anti-patterns]
 stop_conditions:

@@ -66,7 +66,7 @@ Traditional specs produce a task list. AgentSpec produces a **team assignment**.
 | D1 | 5-phase pipeline (Brainstorm->Define->Design->Build->Ship) | Balances rigor with pragmatism | **Implemented** |
 | D2 | Agent matching in Design phase via Glob discovery | Framework-agnostic, zero configuration | **Implemented** |
 | D3 | KB grounding via Technical Context in Define | Prevents hallucinated patterns | **Implemented** |
-| D4 | Model allocation: Opus (0-2), Sonnet (3), Haiku (4) | Cost/quality optimization | **Implemented** |
+| D4 | Model allocation by class: deep (0-2), standard (3), fast (4), resolved per assistant from `sdd/architecture/MODELS.yaml` | Cost/quality optimization | **Implemented** |
 | D5 | Clarity Score 12/15 minimum gate | Catches incomplete specs early | **Implemented** |
 | D6 | Data engineering specialization across agents, KB, and commands | Deep domain expertise for DE workflows | **Implemented** |
 
@@ -173,11 +173,11 @@ Traditional specs produce a task list. AgentSpec produces a **team assignment**.
 
 | Phase | Command | Model | Input | Output | Quality Gate |
 |-------|---------|-------|-------|--------|--------------|
-| 0 | `/brainstorm` | Opus | Vague idea | BRAINSTORM_*.md | Max 5 questions, 3 approaches |
-| 1 | `/define` | Opus | Requirements | DEFINE_*.md | Clarity Score >= 12/15 |
-| 2 | `/design` | Opus | DEFINE doc | DESIGN_*.md | All files have agents |
-| 3 | `/build` | Sonnet | DESIGN doc | Code + BUILD_REPORT | Tests pass |
-| 4 | `/ship` | Haiku | All artifacts | archive/ + SHIPPED_*.md | Lessons captured |
+| 0 | `/brainstorm` | {{model:deep}} | Vague idea | BRAINSTORM_*.md | Max 5 questions, 3 approaches |
+| 1 | `/define` | {{model:deep}} | Requirements | DEFINE_*.md | Clarity Score >= 12/15 |
+| 2 | `/design` | {{model:deep}} | DEFINE doc | DESIGN_*.md | All files have agents |
+| 3 | `/build` | {{model:standard}} | DESIGN doc | Code + BUILD_REPORT | Tests pass |
+| 4 | `/ship` | {{model:fast}} | All artifacts | archive/ + SHIPPED_*.md | Lessons captured |
 
 ---
 
@@ -295,7 +295,7 @@ Each agent follows a standard structure for capability extraction:
 | Attribute | Value |
 |-----------|-------|
 | **Role** | {Role name} <- Primary capability keyword
-| **Model** | {opus/sonnet/haiku}
+| **Model** | {{{model-id:deep}}/{{model-id:standard}}/{{model-id:fast}}}
 | ...
 
 ## Core Capabilities <- Keywords for matching
@@ -380,12 +380,12 @@ KB Domains:          ->    Read patterns:       ->    Agents consult:
 
 | Command | Phase | Purpose | Model |
 |---------|-------|---------|-------|
-| `/brainstorm` | 0 | Explore ideas through collaborative dialogue | Opus |
-| `/define` | 1 | Capture and validate requirements | Opus |
-| `/design` | 2 | Create architecture + agent matching | Opus |
-| `/build` | 3 | Execute with agent delegation | Sonnet |
-| `/ship` | 4 | Archive with lessons learned | Haiku |
-| `/iterate` | Any | Update documents mid-stream | Sonnet |
+| `/brainstorm` | 0 | Explore ideas through collaborative dialogue | {{model:deep}} |
+| `/define` | 1 | Capture and validate requirements | {{model:deep}} |
+| `/design` | 2 | Create architecture + agent matching | {{model:deep}} |
+| `/build` | 3 | Execute with agent delegation | {{model:standard}} |
+| `/ship` | 4 | Archive with lessons learned | {{model:fast}} |
+| `/iterate` | Any | Update documents mid-stream | {{model:standard}} |
 | `/create-pr` | -- | Create pull request with conventional commits | -- |
 
 #### Data Engineering (8)
@@ -619,7 +619,7 @@ touch .base/agents/data-engineering/iceberg-specialist.md
 | Attribute | Value |
 |-----------|-------|
 | **Role** | Table Format Engineer |
-| **Model** | Sonnet |
+| **Model** | {{model:standard}} |
 | **Phase** | 3 - Build |
 
 ## Core Capabilities

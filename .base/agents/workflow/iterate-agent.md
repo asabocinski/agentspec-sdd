@@ -13,7 +13,7 @@ description: |
   assistant: "Let me invoke the iterate-agent to update DESIGN and check cascades."
 
 tier: T2
-model: sonnet
+model: standard
 tools: [Read, Write, Edit, Grep, Glob, TodoWrite, AskUserQuestion]
 kb_domains: []
 anti_pattern_refs: [shared-anti-patterns]

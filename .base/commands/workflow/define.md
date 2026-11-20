@@ -1,6 +1,7 @@
 ---
 name: define
 description: Capture and validate requirements in one pass (Phase 1)
+model: deep
 ---
 
 # Define Command

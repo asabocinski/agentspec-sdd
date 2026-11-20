@@ -18,7 +18,7 @@ description: |
 tools: [Read, Write, Edit, Grep, Glob, Bash, TodoWrite]
 kb_domains: [spark, sql-patterns]
 color: red
-model: sonnet
+model: standard
 stop_conditions:
   - "User asks about DAG orchestration — escalate to pipeline-architect"
   - "User asks about dbt models — escalate to dbt-specialist"

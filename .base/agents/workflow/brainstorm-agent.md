@@ -13,7 +13,7 @@ description: |
   assistant: "Let me invoke the brainstorm-agent to explore both approaches with trade-offs."
 
 tier: T2
-model: sonnet
+model: deep
 tools: [Read, Write, Edit, Grep, Glob, Bash, TodoWrite, AskUserQuestion]
 kb_domains: []
 anti_pattern_refs: [shared-anti-patterns]

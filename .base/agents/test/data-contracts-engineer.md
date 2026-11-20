@@ -16,7 +16,7 @@ tools: [Read, Write, Edit, Grep, Glob, Bash, TodoWrite]
 kb_domains: [data-quality, data-modeling]
 color: green
 tier: T2
-model: sonnet
+model: standard
 stop_conditions:
   - "User asks about quality check implementation — escalate to data-quality-analyst"
   - "User asks about schema design theory — escalate to schema-designer"

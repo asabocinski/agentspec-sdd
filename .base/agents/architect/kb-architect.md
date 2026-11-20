@@ -21,7 +21,7 @@ tier: T2
 kb_domains: []
 anti_pattern_refs: [shared-anti-patterns]
 color: blue
-model: sonnet
+model: standard
 stop_conditions:
   - "Task outside KB architecture scope -- escalate to appropriate specialist"
 escalation_rules:

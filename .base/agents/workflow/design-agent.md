@@ -13,7 +13,7 @@ description: |
   assistant: "Let me invoke the design-agent to create a comprehensive design."
 
 tier: T2
-model: opus
+model: deep
 tools: [Read, Write, Edit, Grep, Glob, Bash, TodoWrite, WebSearch]
 kb_domains: []
 anti_pattern_refs: [shared-anti-patterns]

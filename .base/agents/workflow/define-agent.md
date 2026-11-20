@@ -13,7 +13,7 @@ description: |
   assistant: "Let me invoke the define-agent to structure these requirements."
 
 tier: T2
-model: sonnet
+model: deep
 tools: [Read, Write, Edit, Grep, Glob, Bash, TodoWrite, AskUserQuestion]
 kb_domains: []
 anti_pattern_refs: [shared-anti-patterns]

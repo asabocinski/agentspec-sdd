@@ -20,7 +20,7 @@ tools: [Read, Write, Edit, Grep, Glob, Bash, TodoWrite]
 tier: T2
 kb_domains: [cloud-platforms, lakehouse, data-modeling]
 color: yellow
-model: sonnet
+model: standard
 stop_conditions:
   - "User asks about table format internals — escalate to lakehouse-architect"
   - "User asks about DAG design — escalate to pipeline-architect"

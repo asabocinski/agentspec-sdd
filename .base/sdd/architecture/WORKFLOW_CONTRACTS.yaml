@@ -2,6 +2,9 @@
 # 5-Phase Development Workflow with Agent Matching and Delegation
 # Version: 3.0.0
 # Date: 2026-04-14
+#
+# Models: every `model_class` (deep | standard | fast) is resolved per assistant
+# from sdd/architecture/MODELS.yaml at install time; `model` holds the result.
 
 version: "3.0.0"
 name: "AgentSpec"
@@ -20,7 +23,8 @@ workflow:
       purpose: "Collaborative exploration to clarify intent and approach"
       input: "Raw idea, request, or problem statement"
       output: "BRAINSTORM_{FEATURE}.md"
-      model: "opus"
+      model: "{{model-id:deep}}"
+      model_class: "deep"
       optional: true
 
     - name: "Define"
@@ -30,7 +34,8 @@ workflow:
       purpose: "Capture and validate requirements"
       input: "Raw notes, emails, conversations, BRAINSTORM document, or direct requirements"
       output: "DEFINE_{FEATURE}.md"
-      model: "opus"
+      model: "{{model-id:deep}}"
+      model_class: "deep"
 
     - name: "Design"
       number: 2
@@ -39,7 +44,8 @@ workflow:
       purpose: "Create architecture and technical specification"
       input: "DEFINE_{FEATURE}.md"
       output: "DESIGN_{FEATURE}.md"
-      model: "opus"
+      model: "{{model-id:deep}}"
+      model_class: "deep"
 
     - name: "Build"
       number: 3
@@ -48,7 +54,8 @@ workflow:
       purpose: "Execute implementation with verification"
       input: "DESIGN_{FEATURE}.md"
       output: "Code files + BUILD_REPORT_{FEATURE}.md"
-      model: "sonnet"
+      model: "{{model-id:standard}}"
+      model_class: "standard"
 
     - name: "Ship"
       number: 4
@@ -57,7 +64,8 @@ workflow:
       purpose: "Archive feature with lessons learned"
       input: "All feature artifacts"
       output: "archive/{FEATURE}/SHIPPED_{DATE}.md"
-      model: "haiku"
+      model: "{{model-id:fast}}"
+      model_class: "fast"
 
   cross_phase:
     - name: "Iterate"
@@ -66,7 +74,8 @@ workflow:
       purpose: "Update any phase document when changes needed"
       works_with: ["Brainstorm", "Define", "Design"]
       phase_3_note: "To change code during Build, update DESIGN then run /build"
-      model: "sonnet"
+      model: "{{model-id:standard}}"
+      model_class: "standard"
 
 # =============================================================================
 # PHASE 0: BRAINSTORM (Optional)
@@ -85,7 +94,8 @@ brainstorm:
   agent:
     name: "brainstorm-agent"
     file: ".base/agents/workflow/brainstorm-agent.md"
-    model: "opus"
+    model: "{{model-id:deep}}"
+    model_class: "deep"
     tools:
       - Read
       - Write
@@ -208,7 +218,8 @@ define:
   agent:
     name: "define-agent"
     file: ".base/agents/workflow/define-agent.md"
-    model: "opus"
+    model: "{{model-id:deep}}"
+    model_class: "deep"
     tools:
       - Read
       - Write
@@ -324,7 +335,8 @@ design:
   agent:
     name: "design-agent"
     file: ".base/agents/workflow/design-agent.md"
-    model: "opus"
+    model: "{{model-id:deep}}"
+    model_class: "deep"
     tools:
       - Read
       - Write
@@ -408,7 +420,8 @@ build:
   agent:
     name: "build-agent"
     file: ".base/agents/workflow/build-agent.md"
-    model: "sonnet"
+    model: "{{model-id:standard}}"
+    model_class: "standard"
     tools:
       - Read
       - Write
@@ -484,7 +497,8 @@ ship:
   agent:
     name: "ship-agent"
     file: ".base/agents/workflow/ship-agent.md"
-    model: "haiku"
+    model: "{{model-id:fast}}"
+    model_class: "fast"
     tools:
       - Read
       - Write
@@ -539,7 +553,8 @@ iterate:
   agent:
     name: "iterate-agent"
     file: ".base/agents/workflow/iterate-agent.md"
-    model: "sonnet"
+    model: "{{model-id:standard}}"
+    model_class: "standard"
     tools:
       - Read
       - Write

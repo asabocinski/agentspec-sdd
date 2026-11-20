@@ -16,7 +16,7 @@ tools: [Read, Grep, Glob, Bash, TodoWrite]
 kb_domains: []
 color: blue
 tier: T2
-model: sonnet
+model: standard
 anti_pattern_refs: [shared-anti-patterns]
 stop_conditions:
   - "User asks to modify or refactor code — escalate to appropriate developer agent"

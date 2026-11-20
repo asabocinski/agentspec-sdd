@@ -13,7 +13,7 @@ description: |
   assistant: "Let me invoke the ship-agent to finalize and document."
 
 tier: T2
-model: sonnet
+model: fast
 tools: [Read, Write, Edit, Glob, Bash]
 kb_domains: []
 anti_pattern_refs: [shared-anti-patterns]

@@ -23,7 +23,7 @@
 │   ┌──────────┐         ┌─────────┐          ┌─────────┐          ┌─────────┐          ┌─────────┐      │
 │   │BRAINSTORM│────────▶│ DEFINE  │─────────▶│ DESIGN  │─────────▶│  BUILD  │─────────▶│  SHIP   │      │
 │   │  AGENT   │ or skip │  AGENT  │          │  AGENT  │          │  AGENT  │          │  AGENT  │      │
-│   │  (Opus)  │         │ (Opus)  │          │ (Opus)  │          │(Sonnet) │          │(Haiku)  │      │
+│   │  (deep)  │         │ (deep)  │          │ (deep)  │          │standard │          │ (fast)  │      │
 │   └──────────┘         └─────────┘          └─────────┘          └─────────┘          └─────────┘      │
 │        │                    │                    │                    │                    │            │
 │        ▼                    ▼                    ▼                    ▼                    ▼            │
@@ -42,7 +42,7 @@
 │                                           ┌─────────┐                                                    │
 │                                           │ ITERATE │                                                    │
 │                                           │  AGENT  │                                                    │
-│                                           │(Sonnet) │                                                    │
+│                                           │standard │                                                    │
 │                                           └─────────┘                                                    │
 │                                                │                                                         │
 │                              ┌─────────────────┼─────────────────┐                                       │
@@ -154,13 +154,24 @@
 
 ## Model Assignment
 
+Phases and agents never name a concrete model. Each one declares a **model class**
+(`deep`, `standard` or `fast`), and the installer resolves the class for the assistant it
+installs into, using [`MODELS.yaml`](MODELS.yaml) as the single source of truth. The
+diagrams below show classes; the table shows what they resolve to in this install.
+
+| Class | Resolves to | Used by |
+|-------|-------------|---------|
+| `deep` | {{model:deep}} (`{{model-id:deep}}`) | Brainstorm, Define, Design |
+| `standard` | {{model:standard}} (`{{model-id:standard}}`) | Build, Iterate, most specialists |
+| `fast` | {{model:fast}} (`{{model-id:fast}}`) | Ship |
+
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │                              STRATEGIC MODEL ASSIGNMENT                                  │
 ├─────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                          │
 │   ┌────────────────────────────────────────────────────────────────────────────────┐    │
-│   │                                    OPUS                                         │    │
+│   │                                    DEEP                                         │    │
 │   │                    (Nuanced Understanding & Creative Thinking)                  │    │
 │   │                                                                                 │    │
 │   │   ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │    │
@@ -173,7 +184,7 @@
 │   └────────────────────────────────────────────────────────────────────────────────┘    │
 │                                                                                          │
 │   ┌────────────────────────────────────────────────────────────────────────────────┐    │
-│   │                                   SONNET                                        │    │
+│   │                                  STANDARD                                       │    │
 │   │                           (Fast, Accurate Coding)                               │    │
 │   │                                                                                 │    │
 │   │   ┌─────────────────┐              ┌─────────────────┐                         │    │
@@ -186,7 +197,7 @@
 │   └────────────────────────────────────────────────────────────────────────────────┘    │
 │                                                                                          │
 │   ┌────────────────────────────────────────────────────────────────────────────────┐    │
-│   │                                    HAIKU                                        │    │
+│   │                                    FAST                                         │    │
 │   │                             (Fast, Simple Tasks)                                │    │
 │   │                                                                                 │    │
 │   │   ┌─────────────────┐                                                          │    │

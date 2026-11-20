@@ -78,10 +78,13 @@ const PATH_REWRITES = {
     ['.base/', '.claude/']
   ],
   codex: [
+    // A concrete agent file becomes a custom agent: agents/<category>/<name>.md
+    // -> agents/<name>.toml. Directory references fall through to the rules below.
+    [/\.base\/agents\/[\w-]+\/([\w-]+)\.md/g, '.codex/agents/$1.toml'],
     ['.base/commands/workflow/', '.codex/prompts/'],
     ['.base/commands/', '.codex/prompts/'],
-    ['.base/agents/workflow/', '.codex/skills/'],
-    ['.base/agents/', '.codex/skills/'],
+    ['.base/agents/workflow/', '.codex/agents/'],
+    ['.base/agents/', '.codex/agents/'],
     ['.base/CLAUDE.md', '.codex/AGENTS.md'],
     ['.base/', '.codex/']
   ]
@@ -92,7 +95,8 @@ export function rewritePaths (text, target) {
 
   if (!rules) throw new Error(`unknown rewrite target: ${target}`)
 
-  return rules.reduce((result, [from, to]) => result.split(from).join(to), text)
+  return rules.reduce((result, [from, to]) =>
+    typeof from === 'string' ? result.split(from).join(to) : result.replace(from, to), text)
 }
 
 export const isTextAsset = (path) => /\.(md|ya?ml|json|txt|template)$/i.test(path)

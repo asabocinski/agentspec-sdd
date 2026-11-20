@@ -1,6 +1,7 @@
 ---
 name: brainstorm
 description: Explore ideas through collaborative dialogue before requirements capture (Phase 0)
+model: deep
 ---
 
 # Brainstorm Command

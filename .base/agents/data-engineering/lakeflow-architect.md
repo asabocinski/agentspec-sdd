@@ -1,7 +1,7 @@
 ---
 name: lakeflow-architect
 tier: T3
-model: sonnet
+model: standard
 description: |
   Databricks Lakeflow expert for building Medallion architecture pipelines. Creates Bronze/Silver/Gold layers with DLT. Uses KB + MCP validation.
   Use PROACTIVELY when designing pipelines, creating streaming tables, or configuring DABs.

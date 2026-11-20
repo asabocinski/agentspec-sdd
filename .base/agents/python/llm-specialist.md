@@ -16,7 +16,7 @@ tools: [Read, Write, Edit, Grep, Glob, TodoWrite, WebSearch, mcp__upstash-contex
 kb_domains: [prompt-engineering, pydantic, genai]
 anti_pattern_refs: [shared-anti-patterns]
 tier: T3
-model: opus
+model: deep
 stop_conditions:
   - Confidence threshold met for task category
   - Validation layer in place for structured output

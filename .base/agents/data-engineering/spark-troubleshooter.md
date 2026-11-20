@@ -1,7 +1,7 @@
 ---
 name: spark-troubleshooter
 tier: T1
-model: sonnet
+model: standard
 description: |
   Spark debugging specialist for diagnosing OOM errors, data skew, shuffle failures, and job hangs.
   Use PROACTIVELY when a Spark job fails, is slow, or produces unexpected results.

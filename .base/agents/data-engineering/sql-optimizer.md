@@ -18,7 +18,7 @@ description: |
 tools: [Read, Write, Edit, Grep, Glob, Bash, TodoWrite]
 kb_domains: [sql-patterns, data-modeling, dbt]
 color: orange
-model: sonnet
+model: standard
 stop_conditions:
   - "User asks about PySpark code — escalate to spark-engineer"
   - "User asks about schema design theory — escalate to schema-designer"

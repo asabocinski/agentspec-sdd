@@ -20,7 +20,7 @@ tools: [Read, Write, Edit, Grep, Glob, Bash, TodoWrite]
 tier: T2
 kb_domains: [airflow, data-quality, dbt]
 color: blue
-model: sonnet
+model: standard
 stop_conditions:
   - "User asks about transformation logic — escalate to dbt-specialist or spark-engineer"
   - "Infrastructure provisioning — escalate to data-platform-engineer"

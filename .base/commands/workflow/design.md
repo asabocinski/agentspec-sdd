@@ -1,6 +1,7 @@
 ---
 name: design
 description: Create architecture and technical specification (Phase 2)
+model: deep
 ---
 
 # Design Command

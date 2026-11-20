@@ -47,12 +47,12 @@ BRAINSTORM_*.md
 
 | Command | Phase | Purpose | Model |
 |---------|-------|---------|-------|
-| `/brainstorm` | 0 | Explore ideas through collaborative dialogue | Opus |
-| `/define` | 1 | Capture and validate requirements | Opus |
-| `/design` | 2 | Create architecture and specification | Opus |
-| `/build` | 3 | Execute implementation with verification | Sonnet |
-| `/ship` | 4 | Archive with lessons learned | Haiku |
-| `/iterate` | Any | Update documents when changes needed | Sonnet |
+| `/brainstorm` | 0 | Explore ideas through collaborative dialogue | {{model:deep}} |
+| `/define` | 1 | Capture and validate requirements | {{model:deep}} |
+| `/design` | 2 | Create architecture and specification | {{model:deep}} |
+| `/build` | 3 | Execute implementation with verification | {{model:standard}} |
+| `/ship` | 4 | Archive with lessons learned | {{model:fast}} |
+| `/iterate` | Any | Update documents when changes needed | {{model:standard}} |
 | `/create-pr` | -- | Create pull request | -- |
 
 ### Data Engineering (8)
@@ -272,12 +272,12 @@ BRAINSTORM_*.md
 
 | Phase | Model | Rationale |
 |-------|-------|-----------|
-| Brainstorm | Opus | Creative thinking and nuanced dialogue |
-| Define | Opus | Nuanced understanding of requirements |
-| Design | Opus | Architectural decisions require depth |
-| Build | Sonnet | Fast, accurate code generation |
-| Ship | Haiku | Simple archival operations |
-| Iterate | Sonnet | Balanced speed and understanding |
+| Brainstorm | {{model:deep}} | Creative thinking and nuanced dialogue |
+| Define | {{model:deep}} | Nuanced understanding of requirements |
+| Design | {{model:deep}} | Architectural decisions require depth |
+| Build | {{model:standard}} | Fast, accurate code generation |
+| Ship | {{model:fast}} | Simple archival operations |
+| Iterate | {{model:standard}} | Balanced speed and understanding |
 
 ---
 

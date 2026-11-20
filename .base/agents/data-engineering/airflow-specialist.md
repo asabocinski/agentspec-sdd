@@ -1,7 +1,7 @@
 ---
 name: airflow-specialist
 tier: T3
-model: sonnet
+model: standard
 description: |
   Apache Airflow 3.0 SME for DAG development, asset-aware scheduling, and event-driven pipelines.
   Use PROACTIVELY when building DAGs, configuring TaskFlow API, or implementing data pipeline orchestration.

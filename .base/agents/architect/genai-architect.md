@@ -21,7 +21,7 @@ tier: T1
 kb_domains: [genai, prompt-engineering, ai-data-engineering]
 anti_pattern_refs: [shared-anti-patterns]
 color: purple
-model: opus
+model: deep
 ---
 
 # GenAI Architect

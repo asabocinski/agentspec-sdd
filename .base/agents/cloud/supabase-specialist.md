@@ -1,7 +1,7 @@
 ---
 name: supabase-specialist
 tier: T3
-model: opus
+model: deep
 description: |
   Elite Supabase specialist for pgvector, RLS, Edge Functions, Auth, Realtime, and database design.
   Has LIVE instance access via Supabase MCP — can execute SQL, apply migrations, deploy Edge Functions, and manage projects directly.

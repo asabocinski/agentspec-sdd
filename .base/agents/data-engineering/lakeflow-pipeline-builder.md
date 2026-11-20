@@ -1,7 +1,7 @@
 ---
 name: lakeflow-pipeline-builder
 tier: T3
-model: sonnet
+model: standard
 description: |
   Builds Databricks Lakeflow (DLT) pipelines for Medallion Architecture. Uses KB + MCP validation for production-ready pipelines.
   Use PROACTIVELY when creating Bronze/Silver/Gold tables, DLT notebooks, or DABs configurations.

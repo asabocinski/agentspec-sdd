@@ -7,6 +7,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
 const EXPECTED = [
   { path: '.base/sdd/architecture/WORKFLOW_CONTRACTS.yaml', kind: 'file' },
+  { path: '.base/sdd/architecture/MODELS.yaml', kind: 'file' },
   { path: '.base/sdd/templates', kind: 'dir', minFiles: 5 },
   { path: '.base/commands/workflow', kind: 'dir', minFiles: 7 },
   { path: '.base/agents/workflow', kind: 'dir', minFiles: 6 },
