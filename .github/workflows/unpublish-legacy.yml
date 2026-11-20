@@ -1,0 +1,34 @@
+name: Remove legacy npm package
+
+# One-off: deletes agentspec-rdd, the package's old name, from npm.
+# Irreversible. Runs only by hand, and only when the confirmation input matches.
+# npm allows it while the package has under 300 weekly downloads, one owner and
+# no dependents. Needs NPM_TOKEN from the account that owns agentspec-rdd.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type agentspec-rdd to delete it from npm. This cannot be undone.'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  unpublish:
+    if: inputs.confirm == 'agentspec-rdd'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Replacement is already published
+        run: npm view agentspec-sdd version
+
+      - name: Unpublish agentspec-rdd
+        run: npm unpublish agentspec-rdd --force
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

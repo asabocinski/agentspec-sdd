@@ -478,6 +478,27 @@ npm run bootstrap    # instala .base/ -> .claude/ neste repositório
 O `.claude/` gerado é ignorado pelo git por inteiro, inclusive `settings*.json`. **Editar um arquivo dentro do `.claude/` gerado não tem efeito** — o próximo
 bootstrap sobrescreve. Edite em `.base/` e rode o bootstrap de novo.
 
+## Publicação no npm
+
+A publicação roda no GitHub Actions; não precisa de máquina local.
+
+**Uma vez só:** crie no npm um *Granular Access Token* com *Read and write* e *Bypass
+two-factor authentication*, e salve em **Settings → Secrets and variables → Actions** como
+`NPM_TOKEN`.
+
+**A cada versão:**
+
+1. Suba o `version` no `package.json` (`npm version minor --no-git-tag-version`) e faça merge.
+2. Em **Releases → Draft a new release**, crie a tag `v<versão>` (por exemplo `v0.3.0`) e publique.
+3. O workflow **Publish to npm** confere que a tag bate com o `package.json`, que a versão
+   ainda não existe no npm, roda o `npm test` e publica com *provenance*.
+
+Também dá para disparar à mão em **Actions → Publish to npm → Run workflow**.
+
+O workflow **Remove legacy npm package** apaga o nome antigo, `agentspec-rdd`. Ele só roda à
+mão, exige digitar `agentspec-rdd` como confirmação e só prossegue se o `agentspec-sdd` já
+estiver publicado. Não tem volta.
+
 ## Licença
 
 MIT
